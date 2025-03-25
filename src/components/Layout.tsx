@@ -36,11 +36,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     [hubs]
   );
   
-  const currentPageLabel = useMemo(() =>
-    navItems.find(item => item.path === location.pathname)?.label || 'Dashboard',
-    [location.pathname]
-  );
-  
   useEffect(() => {
     logNavigation('Page changed', {
       from: location.state?.from || 'unknown',
@@ -175,9 +170,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <main className={cn("flex-1 overflow-auto bg-gray-50", isExpanded ? "ml-64" : "ml-16")}>
         <div className="h-16 border-b border-divider flex items-center px-8 shadow-card fixed top-0 right-0 left-0 z-20 bg-[#f5f5f5]" style={{ left: isExpanded ? '16rem' : '4rem' }}>
           <div className="flex-1 flex items-center">
-            <h1 className="text-2xl font-semibold text-gray-900">
-              {currentPageLabel}
-            </h1>
             <div className="flex items-center space-x-4">
               {activeHubs.length > 0 && (
                 <div className="flex items-center space-x-2">
