@@ -5,7 +5,7 @@ import NotificationCenter from './NotificationCenter';
 import { useNavigationStore } from '../store/navigationStore';
 import { useHubStore } from '../store/hubStore';
 import { cn } from '../utils/cn';
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState } from 'react';
 import { useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { logNavigation } from '../store/logStore';
@@ -53,7 +53,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <aside className={cn(
-        "bg-card border-r border-divider transition-all duration-300 ease-in-out shadow-card",
+        "bg-card border-r border-divider transition-all duration-300 ease-in-out shadow-card fixed top-0 bottom-0 left-0 z-30",
         isExpanded ? "w-64" : "w-16"
       )}>
         <div className={cn(
@@ -172,8 +172,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto bg-gray-50">
-        <div className="h-16 bg-card border-b border-divider flex items-center px-8 shadow-card">
+      <main className={cn("flex-1 overflow-auto bg-gray-50", isExpanded ? "ml-64" : "ml-16")}>
+        <div className="h-16 bg-card border-b border-divider flex items-center px-8 shadow-card fixed top-0 right-0 left-0 z-20" style={{ left: isExpanded ? '16rem' : '4rem' }}>
           <div className="flex-1 flex items-center">
             <h1 className="text-2xl font-semibold text-gray-900">
               {currentPageLabel}
@@ -202,7 +202,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <NotificationCenter />
           </div>
         </div>
-        <div className="p-8">{children}</div>
+        <div className="p-8 mt-16">{children}</div>
       </main>
     </div>
   );
