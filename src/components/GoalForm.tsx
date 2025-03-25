@@ -1,10 +1,39 @@
-import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Flag, Calendar, Users, Target, Package, GitBranch, HelpCircle, X } from 'lucide-react';
 import type { ImpactGoal } from '../types';
 import { solutions } from '../data/seed';
-import { useGoalStore } from '../store/goalStore';
 import Tooltip from './Tooltip';
+
+interface Metric {
+  name: string;
+  current: number;
+  target: number;
+  unit: string;
+  direction?: 'increase' | 'decrease';
+  frequency?: 'realtime' | 'hourly' | 'daily' | 'weekly' | 'monthly';
+  dataSource?: string;
+}
+
+interface Solution {
+  solutionId: string;
+  contributionWeight: number;
+  contributionPercentage: number;
+  metrics: Metric[];
+}
+
+interface GoalFormData {
+  title: string;
+  description: string;
+  deadline: string;
+  teamMembers: string[];
+  weight: number;
+  solutions: Solution[];
+  dependencies: {
+    goalId: string;
+    relationshipType: 'blocks' | 'enables' | 'influences';
+    impactWeight: number;
+  }[];
+}
 
 const METRIC_TEMPLATES = {
   model_accuracy: {
@@ -51,9 +80,9 @@ const METRIC_TEMPLATES = {
     name: 'User Satisfaction',
     current: 0,
     target: 5,
-    unit: 'score',
+    unit: 'stars',
     frequency: 'monthly',
-    dataSource: 'User feedback surveys'
+    dataSource: 'User feedback'
   },
   engagement: {
     name: 'User Engagement',
@@ -87,7 +116,8 @@ const METRIC_TEMPLATES = {
     frequency: 'hourly',
     dataSource: 'Error tracking system'
   }
-};
+} as const;
+
 const TOOLTIPS = {
   weight: {
     title: 'Goal Weight',
@@ -126,28 +156,7 @@ interface GoalFormProps {
   onCancel: () => void;
 }
 
-interface GoalFormData {
-  title: string;
-  description: string;
-  deadline: string;
-  teamMembers: string[];
-  weight: number;
-  solutions: {
-    solutionId: string;
-    contributionWeight: number;
-    metrics: {
-      name: string;
-      current: number;
-      target: number;
-      unit: string;
-    }[];
-  }[];
-  dependencies?: {
-    goalId: string;
-    relationshipType: 'blocks' | 'enables' | 'influences';
-    impactWeight: number;
-  }[];
-}
+type MetricTemplate = keyof typeof METRIC_TEMPLATES;
 
 export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalFormProps) {
   const { control, handleSubmit, watch, setValue } = useForm<GoalFormData>({
@@ -157,8 +166,22 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
       deadline: goal.deadline.split('T')[0],
       teamMembers: goal.teamMembers || [],
       weight: goal.weight,
-      solutions: goal.solutions || [],
-      dependencies: goal.dependencies || []
+      solutions: goal.solutions?.map(s => ({
+        ...s,
+        contributionPercentage: s.contributionWeight * 100,
+        metrics: Array.isArray(s.metrics) ? s.metrics : 
+          Object.entries(s.metrics || {}).map(([_, metric]) => ({
+            ...metric,
+            direction: metric.unit === 'minutes' || metric.unit === 'ms' || metric.unit === 'seconds' || 
+                      metric.unit.toLowerCase().includes('error') || metric.unit.toLowerCase().includes('latency')
+              ? 'decrease' as const
+              : 'increase' as const
+          }))
+      })) || [],
+      dependencies: goal.dependencies?.map(d => ({
+        ...d,
+        relationshipType: d.relationshipType as 'blocks' | 'enables' | 'influences'
+      })) || []
     } : {
       title: '',
       description: '',
@@ -170,24 +193,14 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
     }
   });
 
-  const handleFormSubmit = (data: GoalFormData, deploy: boolean) => {
+  const handleFormSubmit = (data: GoalFormData) => {
     onSubmit({
       ...data,
-      status: deploy ? 'live' : 'draft',
       solutions: data.solutions?.map(solution => ({
         ...solution,
-        metrics: Object.entries(solution.metrics || {}).reduce((acc, [key, metric]) => ({
-          ...acc,
-          [key]: {
-            ...metric,
-            direction: metric.unit === 'minutes' || metric.unit === 'ms' || metric.unit === 'seconds' || 
-                      metric.unit.toLowerCase().includes('error') || metric.unit.toLowerCase().includes('latency')
-              ? 'decrease'
-              : 'increase'
-          }
-        }), {})
+        contributionPercentage: solution.contributionWeight * 100
       }))
-    }, deploy);
+    });
   };
 
   const watchedSolutions = watch('solutions');
@@ -198,6 +211,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
       {
         solutionId: '',
         contributionWeight: 1.0,
+        contributionPercentage: 0,
         metrics: []
       }
     ]);
@@ -209,11 +223,10 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
 
   const handleAddMetric = (solutionIndex: number) => {
     const solutions = [...watchedSolutions];
-    const metrics = solutions[solutionIndex].metrics || {};
-    const metricId = crypto.randomUUID();
-    solutions[solutionIndex].metrics = {
+    const metrics = solutions[solutionIndex].metrics || [];
+    solutions[solutionIndex].metrics = [
       ...metrics,
-      [metricId]: {
+      {
         name: '',
         current: 0,
         target: 0,
@@ -222,12 +235,21 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
         frequency: 'daily',
         dataSource: ''
       }
-    };
+    ];
     setValue('solutions', solutions);
   };
 
+  const handleMetricTemplate = (templateName: MetricTemplate, solution: Solution, index: number) => {
+    const template = METRIC_TEMPLATES[templateName];
+    const metrics = solution.metrics || [];
+    setValue(`solutions.${index}.metrics`, [
+      ...metrics,
+      { ...template }
+    ]);
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pb-20">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6 pb-20">
       {parentGoal && (
         <div className="bg-indigo-50 rounded-lg p-4 flex items-start">
           <Flag className="w-5 h-5 text-indigo-500 mt-1" />
@@ -248,7 +270,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
             <input
               {...field}
               type="text"
-              className="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="mt-1 block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
             />
           )}
         />
@@ -263,7 +285,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
             <textarea
               {...field}
               rows={3}
-              className="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="mt-1 block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
             />
           )}
         />
@@ -284,7 +306,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                 <input
                   {...field}
                   type="date"
-                  className="block w-full pl-10 pr-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="block w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                 />
               </div>
             )}
@@ -328,7 +350,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                   step="0.1"
                   min="0"
                   max="1"
-                  className="block w-full pl-10 pr-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="block w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                 />
               </div>
             )}
@@ -350,7 +372,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                 {...field}
                 type="text"
                 placeholder="Enter team member names, separated by commas"
-                className="block w-full pl-10 pr-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="block w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                 onChange={(e) => field.onChange(e.target.value.split(',').map(s => s.trim()))}
                 value={field.value?.join(', ') || ''}
               />
@@ -384,7 +406,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                         <Package className="h-5 w-5 text-gray-400 mr-2" />
                         <select
                           {...field}
-                          className="block w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                         >
                           <option value="">Select Solution</option>
                           {solutions.map((s) => (
@@ -436,7 +458,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                       step="0.1"
                       min="0"
                       max="1"
-                      className="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="mt-1 block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                     />
                   )}
                 />
@@ -468,33 +490,16 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                     <select
                       onChange={(e) => {
                         if (!e.target.value) return;
-                        const template = METRIC_TEMPLATES[e.target.value];
-                        const metrics = { ...solution.metrics } || {};
-                        const metricId = crypto.randomUUID();
-                        setValue(`solutions.${index}.metrics`, {
-                          ...metrics,
-                          [metricId]: template
-                        });
+                        handleMetricTemplate(e.target.value as MetricTemplate, solution, index);
                       }}
                       className="text-sm border-gray-300 rounded-md"
                     >
-                      <option value="">Add from template...</option>
-                      <optgroup label="AI/ML Metrics">
-                        <option value="model_accuracy">Model Accuracy</option>
-                        <option value="training_time">Training Time</option>
-                        <option value="inference_time">Inference Time</option>
-                        <option value="resource_usage">Resource Usage</option>
-                      </optgroup>
-                      <optgroup label="User Metrics">
-                        <option value="adoption_rate">Adoption Rate</option>
-                        <option value="satisfaction">User Satisfaction</option>
-                        <option value="engagement">User Engagement</option>
-                      </optgroup>
-                      <optgroup label="System Metrics">
-                        <option value="throughput">System Throughput</option>
-                        <option value="latency">System Latency</option>
-                        <option value="error_rate">Error Rate</option>
-                      </optgroup>
+                      <option value="">Select Template</option>
+                      {Object.entries(METRIC_TEMPLATES).map(([key, template]) => (
+                        <option key={key} value={key}>
+                          {template.name}
+                        </option>
+                      ))}
                     </select>
                     <button
                       type="button"
@@ -506,13 +511,13 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                   </div>
                   </div>
                 </div>
-                {Object.entries(solution?.metrics || {}).map(([metricId]) => (
-                  <div key={metricId} className="border border-gray-100 rounded-lg p-4 mb-4 bg-gray-50 relative">
+                {solution.metrics.map((_, metricIndex) => (
+                  <div key={metricIndex} className="border border-gray-100 rounded-lg p-4 mb-4 bg-gray-50 relative">
                     <button
                       type="button"
                       onClick={() => {
-                        const metrics = { ...(solution?.metrics || {}) };
-                        delete metrics[metricId];
+                        const metrics = [...solution.metrics];
+                        metrics.splice(metricIndex, 1);
                         setValue(`solutions.${index}.metrics`, metrics);
                       }}
                       className="absolute top-2 right-2 text-gray-400 hover:text-gray-500"
@@ -521,7 +526,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                     </button>
                     <div className="grid grid-cols-2 gap-4 mb-4">
                     <Controller
-                      name={`solutions.${index}.metrics.${metricId}.name`}
+                      name={`solutions.${index}.metrics.${metricIndex}.name`}
                       control={control}
                       render={({ field }) => (
                         <div>
@@ -529,20 +534,20 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                           <input
                             {...field}
                             placeholder="e.g., Model Accuracy"
-                            className="w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                           />
                         </div>
                       )}
                     />
                     <Controller
-                      name={`solutions.${index}.metrics.${metricId}.frequency`}
+                      name={`solutions.${index}.metrics.${metricIndex}.frequency`}
                       control={control}
                       render={({ field }) => (
                         <div>
                           <label className="block text-sm font-medium text-gray-600 mb-1">Measurement Frequency</label>
                           <select
                             {...field}
-                            className="w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                           >
                             <option value="realtime">Real-time</option>
                             <option value="hourly">Hourly</option>
@@ -556,7 +561,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                     </div>
                     <div className="grid grid-cols-3 gap-4 mb-4">
                     <Controller
-                      name={`solutions.${index}.metrics.${metricId}.current`}
+                      name={`solutions.${index}.metrics.${metricIndex}.current`}
                       control={control}
                       render={({ field }) => (
                         <div>
@@ -565,13 +570,13 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                             {...field}
                             type="number"
                             step="any"
-                            className="w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                           />
                         </div>
                       )}
                     />
                     <Controller
-                      name={`solutions.${index}.metrics.${metricId}.target`}
+                      name={`solutions.${index}.metrics.${metricIndex}.target`}
                       control={control}
                       render={({ field }) => (
                         <div>
@@ -580,13 +585,13 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                             {...field}
                             type="number"
                             step="any"
-                            className="w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                           />
                         </div>
                       )}
                     />
                     <Controller
-                      name={`solutions.${index}.metrics.${metricId}.unit`}
+                      name={`solutions.${index}.metrics.${metricIndex}.unit`}
                       control={control}
                       render={({ field }) => (
                         <div>
@@ -594,7 +599,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                           <input
                             {...field}
                             placeholder="e.g., %, ms, users"
-                            className="w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                           />
                         </div>
                       )}
@@ -602,7 +607,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       <Controller
-                        name={`solutions.${index}.metrics.${metricId}.dataSource`}
+                        name={`solutions.${index}.metrics.${metricIndex}.dataSource`}
                         control={control}
                         render={({ field }) => (
                           <div>
@@ -610,7 +615,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                             <input
                               {...field}
                               placeholder="e.g., Model evaluation pipeline, User analytics, System monitoring"
-                              className="w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                              className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                             />
                           </div>
                         )}
@@ -658,7 +663,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                       <GitBranch className="h-5 w-5 text-gray-400 mr-2" />
                       <select
                         {...field}
-                        className="block w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                       >
                         <option value="">Select Goal</option>
                         {/* Add goal options here */}
@@ -672,7 +677,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                   render={({ field }) => (
                     <select
                       {...field}
-                      className="block w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                     >
                       <option value="blocks">Blocks</option>
                       <option value="enables">Enables</option>
@@ -691,7 +696,7 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
                       min="0"
                       max="1"
                       placeholder="Impact Weight"
-                      className="block w-full px-3 py-2 rounded-md border-gray-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                     />
                   )}
                 />
@@ -713,13 +718,12 @@ export default function GoalForm({ goal, parentGoal, onSubmit, onCancel }: GoalF
           <button
             type="submit"
             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            onClick={() => handleSubmit((data) => handleFormSubmit(data, false))()}
           >
             Save as Draft
           </button>
           <button
             type="button"
-            onClick={() => handleSubmit((data) => handleFormSubmit(data, true))()}
+            onClick={() => handleSubmit((data) => handleFormSubmit(data))}
             className="ml-2 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
             Save and Deploy
