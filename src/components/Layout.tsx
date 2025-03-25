@@ -53,11 +53,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <aside className={cn(
-        "bg-card border-r border-divider transition-all duration-300 ease-in-out shadow-card fixed top-0 bottom-0 left-0 z-30",
+        "bg-[#f5f5f5] border-r border-divider transition-all duration-300 ease-in-out shadow-card fixed top-0 bottom-0 left-0 z-30",
         isExpanded ? "w-64" : "w-16"
       )}>
         <div className={cn(
-          "h-16 flex items-center border-b border-divider bg-white",
+          "h-16 flex items-center border-b border-divider bg-[#f5f5f5]",
           isExpanded ? "px-6" : "px-4"
         )}>
           <button
@@ -173,7 +173,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <main className={cn("flex-1 overflow-auto bg-gray-50", isExpanded ? "ml-64" : "ml-16")}>
-        <div className="h-16 bg-card border-b border-divider flex items-center px-8 shadow-card fixed top-0 right-0 left-0 z-20" style={{ left: isExpanded ? '16rem' : '4rem' }}>
+        <div className="h-16 border-b border-divider flex items-center px-8 shadow-card fixed top-0 right-0 left-0 z-20 bg-[#f5f5f5]" style={{ left: isExpanded ? '16rem' : '4rem' }}>
           <div className="flex-1 flex items-center">
             <h1 className="text-2xl font-semibold text-gray-900">
               {currentPageLabel}
