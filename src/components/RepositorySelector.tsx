@@ -36,7 +36,7 @@ export default function RepositorySelector({ onSelect, onInstallApp }: Repositor
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-white relative flex items-center text-left cursor-default rounded-md border border-gray-300 shadow-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+        className="w-full bg-white relative flex items-center text-left cursor-default rounded-md border border-gray-300 shadow-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-indigo-500"
       >
         <Github className="w-5 h-5 text-gray-400 mr-2" />
         {selectedRepo ? (
@@ -63,7 +63,7 @@ export default function RepositorySelector({ onSelect, onInstallApp }: Repositor
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-gray-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="Search repositories..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -81,7 +81,7 @@ export default function RepositorySelector({ onSelect, onInstallApp }: Repositor
                 <p className="text-gray-500 mb-4">No repositories found</p>
                 <button
                   onClick={onInstallApp}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Install GitHub App

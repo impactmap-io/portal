@@ -29,7 +29,7 @@ export default function NotificationCenter() {
               <div className="flex space-x-2">
                 <button
                   onClick={() => markAllAsRead()}
-                  className="text-sm text-indigo-600 hover:text-indigo-500"
+                  className="text-sm text-black hover:text-gray-800"
                 >
                   Mark all as read
                 </button>
@@ -66,7 +66,7 @@ export default function NotificationCenter() {
                       {!notification.read && (
                         <button
                           onClick={() => markAsRead(notification.id)}
-                          className="text-indigo-600 hover:text-indigo-500"
+                          className="text-black hover:text-gray-800"
                         >
                           <Check className="w-5 h-5" />
                         </button>

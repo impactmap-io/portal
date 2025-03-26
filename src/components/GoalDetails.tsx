@@ -49,7 +49,7 @@ export default function GoalDetails({ goal, onClose, onEdit }: GoalDetailsProps)
                 </div>
                 <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-indigo-600 rounded-full transition-all duration-500"
+                    className="h-full bg-black rounded-full transition-all duration-500"
                     style={{ width: `${Math.round(goal.progress * 100)}%` }}
                   />
                 </div>
@@ -106,7 +106,7 @@ export default function GoalDetails({ goal, onClose, onEdit }: GoalDetailsProps)
                           </div>
                           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-indigo-600 rounded-full transition-all duration-500"
+                              className="h-full bg-black rounded-full transition-all duration-500"
                               style={{
                                 width: `${Math.min((metric.current / metric.target) * 100, 100)}%`
                               }}
@@ -142,7 +142,7 @@ export default function GoalDetails({ goal, onClose, onEdit }: GoalDetailsProps)
             </button>
             <button
               onClick={onEdit}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800"
             >
               Edit Goal
             </button>

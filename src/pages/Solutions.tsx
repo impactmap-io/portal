@@ -147,7 +147,7 @@ export default function Solutions() {
           </button>
           <button
             onClick={() => setIsCreating(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800"
           >
             <Plus className="w-4 h-4 mr-2" />
             New Solution
@@ -166,7 +166,7 @@ export default function Solutions() {
                   placeholder="Search solutions..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-gray-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
             </div>
@@ -175,7 +175,7 @@ export default function Solutions() {
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value as typeof filter)}
-                className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-indigo-500 sm:text-sm rounded-md"
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
@@ -184,7 +184,7 @@ export default function Solutions() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value as Solution['category'] | 'all')}
-                className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-indigo-500 sm:text-sm rounded-md"
               >
                 <option value="all">All Categories</option>
                 <option value="product">Products</option>
@@ -202,7 +202,7 @@ export default function Solutions() {
             <h3 className="text-sm font-medium text-indigo-900 capitalize">{categoryFilter} Solutions</h3>
             <div className="mt-2 space-y-2">
               <p className="text-sm text-indigo-700">{categoryInfo[categoryFilter].description}</p>
-              <p className="text-sm text-indigo-600">Examples: {categoryInfo[categoryFilter].examples}</p>
+              <p className="text-sm text-black">Examples: {categoryInfo[categoryFilter].examples}</p>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-indigo-800 font-medium">Impact Areas:</span>
                 {categoryInfo[categoryFilter].impactAreas.map((area) => (
@@ -315,7 +315,7 @@ export default function Solutions() {
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      className="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500 sm:text-sm"
                       required
                     />
                   </div>
@@ -326,7 +326,7 @@ export default function Solutions() {
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       rows={3}
-                      className="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      className="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500 sm:text-sm"
                       required
                     />
                   </div>
@@ -336,7 +336,7 @@ export default function Solutions() {
                     <select
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value as Solution['category'] })}
-                      className="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm group"
+                      className="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500 sm:text-sm group"
                     >
                       <option value="product">Product - Standalone Application</option>
                       <option value="platform">Platform - Foundation System</option>
@@ -363,7 +363,7 @@ export default function Solutions() {
                     </button>
                     <button
                       type="submit"
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800"
                     >
                       <Check className="w-4 h-4 mr-2" />
                       {editingSolutionId ? 'Update' : 'Create'} Solution
@@ -449,7 +449,7 @@ export default function Solutions() {
                       href={solution.repository.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="ml-2 text-sm text-gray-900 hover:text-indigo-600"
+                      className="ml-2 text-sm text-gray-900 hover:text-black"
                     >
                       {solution.repository.url.split('/').slice(-2).join('/')}
                     </a>

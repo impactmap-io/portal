@@ -63,7 +63,7 @@ export default function FeedbackDialog({ entityId, entityType, entityTitle }: Fe
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800"
       >
         <MessageSquarePlus className="w-4 h-4 mr-2" />
         Provide Feedback
@@ -96,7 +96,7 @@ export default function FeedbackDialog({ entityId, entityType, entityTitle }: Fe
                     onChange={(e) =>
                       setFormData({ ...formData, type: e.target.value as Feedback['type'] })
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                   >
                     <option value="suggestion">Suggestion</option>
                     <option value="issue">Issue</option>
@@ -109,7 +109,7 @@ export default function FeedbackDialog({ entityId, entityType, entityTitle }: Fe
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                   >
                     {CATEGORIES.map((category) => (
                       <option key={category} value={category}>
@@ -125,7 +125,7 @@ export default function FeedbackDialog({ entityId, entityType, entityTitle }: Fe
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                     required
                   />
                 </div>
@@ -136,7 +136,7 @@ export default function FeedbackDialog({ entityId, entityType, entityTitle }: Fe
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={4}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                     required
                   />
                 </div>
@@ -144,7 +144,7 @@ export default function FeedbackDialog({ entityId, entityType, entityTitle }: Fe
                 <div className="mt-5 sm:mt-6">
                   <button
                     type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:text-sm"
                   >
                     Submit Feedback
                   </button>

@@ -60,7 +60,7 @@ export default function TeamManagement({ solution, onUpdateTeam }: TeamManagemen
         </div>
         <button
           onClick={() => setIsAddingMember(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800"
         >
           <UserPlus className="w-4 h-4 mr-2" />
           Add Team Member
@@ -81,7 +81,7 @@ export default function TeamManagement({ solution, onUpdateTeam }: TeamManagemen
                     value={member.role}
                     onChange={(e) => handleUpdateRole(member.id, e.target.value as TeamMember['role'])}
                     disabled={member.role === 'owner'}
-                    className="block text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="block text-sm border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-indigo-500"
                   >
                     <option value="admin">Admin</option>
                     <option value="member">Member</option>
@@ -127,7 +127,7 @@ export default function TeamManagement({ solution, onUpdateTeam }: TeamManagemen
                     type="email"
                     value={newMember.email}
                     onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                     required
                   />
                 </div>
@@ -139,7 +139,7 @@ export default function TeamManagement({ solution, onUpdateTeam }: TeamManagemen
                   <select
                     value={newMember.role}
                     onChange={(e) => setNewMember({ ...newMember, role: e.target.value as TeamMember['role'] })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                   >
                     <option value="admin">Admin</option>
                     <option value="member">Member</option>
@@ -158,7 +158,7 @@ export default function TeamManagement({ solution, onUpdateTeam }: TeamManagemen
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800"
                 >
                   Add Member
                 </button>

@@ -264,7 +264,7 @@ export default function SolutionRelationships({
               <select
                 value={formData.collaborationType || ''}
                 onChange={(e) => setFormData({ ...formData, collaborationType: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                 required
               >
                 <option value="">Select Type</option>
@@ -280,7 +280,7 @@ export default function SolutionRelationships({
               <select
                 value={formData.targetSolutionId || ''}
                 onChange={(e) => setFormData({ ...formData, targetSolutionId: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
               >
                 <option value="">Select Solution</option>
                 {allSolutions
@@ -297,7 +297,7 @@ export default function SolutionRelationships({
               <select
                 value={formData.flowType || 'unidirectional'}
                 onChange={(e) => setFormData({ ...formData, flowType: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
               >
                 <option value="unidirectional">Unidirectional</option>
                 <option value="bidirectional">Bidirectional</option>
@@ -315,7 +315,7 @@ export default function SolutionRelationships({
               <select
                 value={formData.dependencyType || ''}
                 onChange={(e) => setFormData({ ...formData, dependencyType: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                 required
               >
                 <option value="">Select Type</option>
@@ -331,7 +331,7 @@ export default function SolutionRelationships({
               <select
                 value={formData.dependencySolutionId || ''}
                 onChange={(e) => setFormData({ ...formData, dependencySolutionId: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
               >
                 <option value="">Select Solution</option>
                 {allSolutions
@@ -348,7 +348,7 @@ export default function SolutionRelationships({
               <select
                 value={formData.flowType || 'unidirectional'}
                 onChange={(e) => setFormData({ ...formData, flowType: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
               >
                 <option value="unidirectional">Unidirectional</option>
                 <option value="bidirectional">Bidirectional</option>
@@ -366,7 +366,7 @@ export default function SolutionRelationships({
               <select
                 value={formData.integrationType || ''}
                 onChange={(e) => setFormData({ ...formData, integrationType: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                 required
               >
                 <option value="">Select Type</option>
@@ -382,7 +382,7 @@ export default function SolutionRelationships({
               <select
                 value={formData.targetSolutionId || ''}
                 onChange={(e) => setFormData({ ...formData, targetSolutionId: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
               >
                 <option value="">Select Solution</option>
                 {allSolutions
@@ -399,7 +399,7 @@ export default function SolutionRelationships({
               <select
                 value={formData.flowType || 'unidirectional'}
                 onChange={(e) => setFormData({ ...formData, flowType: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
               >
                 <option value="unidirectional">Unidirectional</option>
                 <option value="bidirectional">Bidirectional</option>
@@ -440,7 +440,7 @@ export default function SolutionRelationships({
                       setEditingItem(collab);
                       setFormData(collab);
                     }}
-                    className="text-indigo-600 hover:text-indigo-900"
+                    className="text-black hover:text-indigo-900"
                   >
                     Edit
                   </button>
@@ -481,7 +481,7 @@ export default function SolutionRelationships({
                       setEditingItem(dep);
                       setFormData(dep);
                     }}
-                    className="text-indigo-600 hover:text-indigo-900"
+                    className="text-black hover:text-indigo-900"
                   >
                     Edit
                   </button>
@@ -522,7 +522,7 @@ export default function SolutionRelationships({
                       setEditingItem(integration);
                       setFormData(integration);
                     }}
-                    className="text-indigo-600 hover:text-indigo-900"
+                    className="text-black hover:text-indigo-900"
                   >
                     Edit
                   </button>
@@ -547,7 +547,7 @@ export default function SolutionRelationships({
                   setEditingItem(version);
                   setFormData(version);
                 }}
-                className="text-indigo-600 hover:text-indigo-900"
+                className="text-black hover:text-indigo-900"
               >
                 Edit
               </button>
@@ -585,7 +585,7 @@ export default function SolutionRelationships({
                 className={`
                   flex items-center space-x-2 pb-4 px-1 border-b-2 font-medium text-sm
                   ${activeTab === tab.id
-                    ? 'border-indigo-500 text-indigo-600'
+                    ? 'border-indigo-500 text-black'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
                 `}
               >
@@ -601,7 +601,7 @@ export default function SolutionRelationships({
         <div className="flex justify-end">
           <button
             onClick={() => activeTab === 'versions' ? setShowVersionModal(true) : setShowAddModal(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
           >
             <Plus className="w-4 h-4 mr-2" />
             {activeTab === 'versions' ? 'Add Version' : 
@@ -647,7 +647,7 @@ export default function SolutionRelationships({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                  className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800"
                 >
                   Add
                 </button>
@@ -689,7 +689,7 @@ export default function SolutionRelationships({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                  className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800"
                 >
                   Update
                 </button>
@@ -710,7 +710,7 @@ export default function SolutionRelationships({
               type="text"
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm mb-4"
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-indigo-500 sm:text-sm mb-4"
             />
             <div className="flex justify-end space-x-3">
               <button
@@ -766,7 +766,7 @@ export default function SolutionRelationships({
                   type="text"
                   value={formData.version || ''}
                   onChange={(e) => setFormData({ ...formData, version: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                   placeholder="e.g., 1.0.0"
                   required
                 />
@@ -777,7 +777,7 @@ export default function SolutionRelationships({
                 <select
                   value={formData.state || ''}
                   onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                   required
                 >
                   <option value="">Select State</option>
@@ -795,7 +795,7 @@ export default function SolutionRelationships({
                   value={formData.changelog || ''}
                   onChange={(e) => setFormData({ ...formData, changelog: e.target.value })}
                   rows={4}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                   placeholder="List the changes in this version..."
                 />
               </div>
@@ -809,7 +809,7 @@ export default function SolutionRelationships({
                     breakingChanges: e.target.value.split('\n').filter(Boolean)
                   })}
                   rows={3}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                   placeholder="One breaking change per line..."
                 />
               </div>
@@ -823,7 +823,7 @@ export default function SolutionRelationships({
                     knownIssues: e.target.value.split('\n').filter(Boolean)
                   })}
                   rows={3}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                   placeholder="One issue per line..."
                 />
               </div>
@@ -834,7 +834,7 @@ export default function SolutionRelationships({
                   value={formData.upgradeGuide || ''}
                   onChange={(e) => setFormData({ ...formData, upgradeGuide: e.target.value })}
                   rows={3}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                   placeholder="Instructions for upgrading to this version..."
                 />
               </div>
@@ -852,7 +852,7 @@ export default function SolutionRelationships({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                  className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800"
                 >
                   Add Version
                 </button>
