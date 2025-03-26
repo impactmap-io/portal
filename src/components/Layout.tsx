@@ -27,7 +27,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { isExpanded, toggle } = useNavigationStore();
   const { hubs, activeHubId, setActiveHub } = useHubStore();
-  
   const { session, signOut } = useAuthStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
   
@@ -51,6 +50,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         "bg-[#f5f5f5] border-r border-divider transition-all duration-300 ease-in-out shadow-card fixed top-0 bottom-0 left-0 z-30",
         isExpanded ? "w-64" : "w-16"
       )}>
+        <style>
+          {`
+            .nav-scrollbar {
+              scrollbar-width: thin;
+              scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+            }
+            .nav-scrollbar::-webkit-scrollbar {
+              width: 4px;
+            }
+            .nav-scrollbar::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            .nav-scrollbar::-webkit-scrollbar-thumb {
+              background-color: rgba(156, 163, 175, 0.5);
+              border-radius: 20px;
+            }
+            .nav-scrollbar::-webkit-scrollbar-thumb:hover {
+              background-color: rgba(156, 163, 175, 0.7);
+            }
+          `}
+        </style>
         <div className={cn(
           "h-16 flex items-center border-b border-divider bg-[#f5f5f5]",
           isExpanded ? "px-6" : "px-4"
@@ -71,7 +91,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </span>
           </div>
         </div>
-        <nav className="p-4 space-y-1 flex-1">
+        <nav className="p-4 space-y-1 overflow-y-auto flex-1 nav-scrollbar" style={{
+          height: 'calc(100vh - 64px)'
+        }}>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -88,10 +110,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 )}
                 title={item.label}
               >
-                <Icon className={cn("w-5 h-5", isExpanded ? "mr-3" : "mr-0", !isActive && "text-gray-600")} />
+                <Icon className={cn(
+                  "w-5 h-5 flex-shrink-0",
+                  isExpanded ? "mr-3" : "mr-0",
+                  !isActive && "text-gray-600"
+                )} />
                 <span className={cn(
                   "transition-opacity duration-300",
-                  isExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
+                  isExpanded ? "opacity-100" : "hidden"
                 )}>
                   {item.label}
                 </span>
@@ -99,71 +125,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        
-        {/* User Account Section */}
-        {session?.user && (
-          <div className="border-t border-divider p-4">
-            <div className="relative">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className={cn(
-                  "w-full flex items-center text-left rounded-lg p-2 hover:bg-gray-100",
-                  !isExpanded && "justify-center"
-                )}
-              >
-                <img
-                  src={session.user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`}
-                  alt="Avatar"
-                  className="w-8 h-8 rounded-full"
-                />
-                {isExpanded && (
-                  <>
-                    <div className="ml-3 flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {session.user.fullName}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {session.user.email}
-                      </p>
-                    </div>
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
-                  </>
-                )}
-              </button>
-              
-              {showUserMenu && isExpanded && (
-                <div className="absolute bottom-full left-0 w-full mb-2 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
-                  <Link
-                    to="/hubs"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => setShowUserMenu(false)}
-                  >
-                    <Map className="w-4 h-4 mr-3" />
-                    Manage Hubs
-                  </Link>
-                  <Link
-                    to="/settings"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => setShowUserMenu(false)}
-                  >
-                    <Settings className="w-4 h-4 mr-3" />
-                    Settings
-                  </Link>
-                  <button
-                    onClick={() => {
-                      signOut();
-                      setShowUserMenu(false);
-                    }}
-                    className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                  >
-                    <LogOut className="w-4 h-4 mr-3" />
-                    Sign out
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </aside>
 
       {/* Main content */}
@@ -172,7 +133,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex-1 flex items-center">
             <div className="flex items-center space-x-4">
               {activeHubs.length > 0 && (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 mr-4">
                   <Map className="w-5 h-5 text-gray-400" />
                   <select
                     value={activeHubId || ''}
@@ -190,8 +151,57 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             <NotificationCenter />
+            {session?.user && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center space-x-3 p-1.5 rounded-lg hover:bg-gray-100"
+                >
+                  <img
+                    src={session.user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`}
+                    alt="Avatar"
+                    className="w-8 h-8 rounded-full"
+                  />
+                  <div className="flex items-center">
+                    <span className="text-sm font-medium text-gray-700">{session.user.fullName}</span>
+                    <ChevronDown className="w-4 h-4 ml-1 text-gray-400" />
+                  </div>
+                </button>
+                
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    <Link
+                      to="/hubs"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <Map className="w-4 h-4 mr-3" />
+                      Manage Hubs
+                    </Link>
+                    <Link
+                      to="/settings"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <Settings className="w-4 h-4 mr-3" />
+                      Settings
+                    </Link>
+                    <button
+                      onClick={() => {
+                        signOut();
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    >
+                      <LogOut className="w-4 h-4 mr-3" />
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div className="p-8 mt-16">{children}</div>
