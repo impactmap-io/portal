@@ -1,31 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Link2, GitBranch, Plug, Tags, Plus, X, AlertTriangle, Pencil } from 'lucide-react';
+import { GitBranch, Package, Users, Plus, X } from 'lucide-react';
 import type { Solution, SolutionCollaboration, SolutionDependency, SolutionIntegration, SolutionVersion } from '../types';
-import Tooltip from './Tooltip';
-import StatusBadge from './StatusBadge';
+import { useSolutionStore } from '../store/solutionStore';
 
-const FLOW_TYPES = [
-  { value: 'unidirectional', label: 'One-way', description: 'Data flows in a single direction' },
-  { value: 'bidirectional', label: 'Two-way', description: 'Data flows in both directions' },
-  { value: 'lateral', label: 'Lateral', description: 'Side-by-side data exchange with no direct flow' }
-];
+type TabType = 'collaborations' | 'dependencies' | 'integrations' | 'versions';
 
-interface SolutionRelationshipsProps {
+interface Props {
   solution: Solution;
   allSolutions: Solution[];
   onAddCollaboration: (collaboration: Partial<SolutionCollaboration>) => void;
   onAddDependency: (dependency: Partial<SolutionDependency>) => void;
   onAddIntegration: (integration: Partial<SolutionIntegration>) => void;
-  onAddVersion: (version: Partial<SolutionVersion>) => void;
   onUpdateCollaboration: (id: string, updates: Partial<SolutionCollaboration>) => void;
   onUpdateDependency: (id: string, updates: Partial<SolutionDependency>) => void;
   onUpdateIntegration: (id: string, updates: Partial<SolutionIntegration>) => void;
   onRemoveCollaboration: (id: string, solutionId: string) => void;
   onRemoveDependency: (id: string, solutionId: string) => void;
   onRemoveIntegration: (id: string, solutionId: string) => void;
+  onAddVersion: (version: Partial<SolutionVersion>) => void;
 }
-
-type TabType = 'collaborations' | 'dependencies' | 'integrations' | 'versions';
 
 export default function SolutionRelationships({
   solution,
@@ -33,558 +26,78 @@ export default function SolutionRelationships({
   onAddCollaboration,
   onAddDependency,
   onAddIntegration,
-  onAddVersion,
   onUpdateCollaboration,
   onUpdateDependency,
   onUpdateIntegration,
   onRemoveCollaboration,
   onRemoveDependency,
   onRemoveIntegration,
-}: SolutionRelationshipsProps) {
+  onAddVersion
+}: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('collaborations');
-  const [isAdding, setIsAdding] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
-  const [editingItem, setEditingItem] = useState<{ id: string; type: TabType } | null>(null);
-  const [removingItem, setRemovingItem] = useState<{ id: string; type: TabType; name: string } | null>(null);
+  const [removingItem, setRemovingItem] = useState<{ id: string; type: TabType; name: string; } | null>(null);
+  const [showVersionModal, setShowVersionModal] = useState(false);
   const [confirmText, setConfirmText] = useState('');
-  const [localSolution, setLocalSolution] = useState(solution);
+  const { solutions, updateSolution } = useSolutionStore();
 
-  // Update local solution when prop changes
-  useEffect(() => {
-    setLocalSolution(solution);
-  }, [solution]);
+  const currentSolution = solutions.find(s => s.id === solution.id) || solution;
 
-  const renderForm = () => {
-    switch (activeTab) {
-      case 'collaborations':
-        return (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Target Solution</label>
-              <select
-                value={formData.targetSolutionId || ''}
-                onChange={(e) => setFormData({ ...formData, targetSolutionId: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                required
-              >
-                <option value="">Select Solution</option>
-                {allSolutions
-                  .filter((s) => s.id !== solution.id)
-                  .map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Type</label>
-              <select
-                value={formData.collaborationType || ''}
-                onChange={(e) => setFormData({ ...formData, collaborationType: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                required
-              >
-                <option value="">Select Type</option>
-                <option value="data-sharing">Data Sharing</option>
-                <option value="joint-development">Joint Development</option>
-                <option value="resource-sharing">Resource Sharing</option>
-                <option value="knowledge-transfer">Knowledge Transfer</option>
-                <option value="co-marketing">Co-Marketing</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Flow Type</label>
-              <div className="mt-1 flex items-center space-x-2">
-                <select
-                  value={formData.flowType || 'unidirectional'}
-                  onChange={(e) => setFormData({ ...formData, flowType: e.target.value })}
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  required
-                >
-                  {FLOW_TYPES.map(type => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
-                  ))}
-                </select>
-                <Tooltip
-                  content={
-                    <div className="space-y-2">
-                      <p className="font-medium">Flow Types</p>
-                      {FLOW_TYPES.map(type => (
-                        <div key={type.value} className="text-sm">
-                          <span className="font-medium">{type.label}:</span> {type.description}
-                        </div>
-                      ))}
-                    </div>
-                  }
-                >
-                  <div className="p-1 hover:bg-gray-100 rounded cursor-help">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                </Tooltip>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Description</label>
-              <textarea
-                value={formData.description || ''}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                rows={3}
-              />
-            </div>
-          </>
-        );
-
-      case 'dependencies':
-        return (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Dependency Solution</label>
-              <select
-                value={formData.dependencySolutionId || ''}
-                onChange={(e) => setFormData({ ...formData, dependencySolutionId: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                required
-              >
-                <option value="">Select Solution</option>
-                {allSolutions
-                  .filter((s) => s.id !== solution.id)
-                  .map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Type</label>
-              <select
-                value={formData.dependencyType || ''}
-                onChange={(e) => setFormData({ ...formData, dependencyType: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                required
-              >
-                <option value="">Select Type</option>
-                <option value="api">API</option>
-                <option value="data">Data</option>
-                <option value="infrastructure">Infrastructure</option>
-                <option value="library">Library</option>
-                <option value="service">Service</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Flow Type</label>
-              <div className="mt-1 flex items-center space-x-2">
-                <select
-                  value={formData.flowType || 'unidirectional'}
-                  onChange={(e) => setFormData({ ...formData, flowType: e.target.value })}
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  required
-                >
-                  {FLOW_TYPES.map(type => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
-                  ))}
-                </select>
-                <Tooltip
-                  content={
-                    <div className="space-y-2">
-                      <p className="font-medium">Flow Types</p>
-                      {FLOW_TYPES.map(type => (
-                        <div key={type.value} className="text-sm">
-                          <span className="font-medium">{type.label}:</span> {type.description}
-                        </div>
-                      ))}
-                    </div>
-                  }
-                >
-                  <div className="p-1 hover:bg-gray-100 rounded cursor-help">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                </Tooltip>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Criticality</label>
-              <select
-                value={formData.criticality || 'medium'}
-                onChange={(e) => setFormData({ ...formData, criticality: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </div>
-          </>
-        );
-
-      case 'integrations':
-        return (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Target Solution</label>
-              <select
-                value={formData.targetSolutionId || ''}
-                onChange={(e) => setFormData({ ...formData, targetSolutionId: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                required
-              >
-                <option value="">Select Solution</option>
-                {allSolutions
-                  .filter((s) => s.id !== solution.id)
-                  .map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Integration Type</label>
-              <select
-                value={formData.integrationType || ''}
-                onChange={(e) => setFormData({ ...formData, integrationType: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                required
-              >
-                <option value="">Select Type</option>
-                <option value="rest-api">REST API</option>
-                <option value="event-stream">Event Stream</option>
-                <option value="database">Database</option>
-                <option value="file-exchange">File Exchange</option>
-                <option value="webhook">Webhook</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Flow Type</label>
-              <div className="mt-1 flex items-center space-x-2">
-                <select
-                  value={formData.flowType || 'unidirectional'}
-                  onChange={(e) => setFormData({ ...formData, flowType: e.target.value })}
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  required
-                >
-                  {FLOW_TYPES.map(type => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
-                  ))}
-                </select>
-                <Tooltip
-                  content={
-                    <div className="space-y-2">
-                      <p className="font-medium">Flow Types</p>
-                      {FLOW_TYPES.map(type => (
-                        <div key={type.value} className="text-sm">
-                          <span className="font-medium">{type.label}:</span> {type.description}
-                        </div>
-                      ))}
-                    </div>
-                  }
-                >
-                  <div className="p-1 hover:bg-gray-100 rounded cursor-help">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                </Tooltip>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Health Check URL</label>
-              <input
-                type="url"
-                value={formData.healthCheckUrl || ''}
-                onChange={(e) => setFormData({ ...formData, healthCheckUrl: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              />
-            </div>
-          </>
-        );
-
-      case 'versions':
-        return (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Version</label>
-              <input
-                type="text"
-                value={formData.version || ''}
-                onChange={(e) => setFormData({ ...formData, version: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Changelog</label>
-              <textarea
-                value={formData.changelog || ''}
-                onChange={(e) => setFormData({ ...formData, changelog: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                rows={3}
-              />
-            </div>
-          </>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'collaborations':
-        return localSolution.collaborations?.map((collab) => {
-          const solutionDetails = allSolutions.find(s => s.id === collab.targetSolutionId);
-          return (
-            <div key={collab.id} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900">{solutionDetails?.name}</h4>
-                  <div className="mt-2 space-y-2">
-                    <p className="text-sm text-gray-600">{collab.description}</p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>Type: {collab.collaborationType}</span>
-                      <span>Flow: {FLOW_TYPES.find(f => f.value === collab.flowType)?.label}</span>
-                      <span>Status: {collab.status}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleEdit(collab.id, 'collaborations', collab)}
-                      className="text-gray-400 hover:text-gray-500"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleRemove(collab.id, 'collaborations', solutionDetails?.name || '')}
-                      className="text-red-400 hover:text-red-500"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-                <StatusBadge status={collab.status} />
-              </div>
-            </div>
-          );
-        });
-
-      case 'dependencies':
-        return localSolution.dependencies?.map((dep) => {
-          const solutionDetails = allSolutions.find(s => s.id === dep.dependencySolutionId);
-          return (
-            <div key={dep.id} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900">{solutionDetails?.name}</h4>
-                  <div className="mt-2 space-y-2">
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>Type: {dep.dependencyType}</span>
-                      <span>Flow: {FLOW_TYPES.find(f => f.value === dep.flowType)?.label}</span>
-                      <span>Criticality: {dep.criticality}</span>
-                    </div>
-                    {dep.requirements && (
-                      <div className="text-sm text-gray-600">
-                        <span className="font-medium">Requirements:</span> {JSON.stringify(dep.requirements)}
-                      </div>
-                    )}
-                    {dep.validationRules && (
-                      <div className="text-sm text-gray-600">
-                        <span className="font-medium">Validation Rules:</span> {JSON.stringify(dep.validationRules)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleEdit(dep.id, 'dependencies', dep)}
-                      className="text-gray-400 hover:text-gray-500"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleRemove(dep.id, 'dependencies', solutionDetails?.name || '')}
-                      className="text-red-400 hover:text-red-500"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-                <StatusBadge status={dep.criticality} />
-              </div>
-            </div>
-          );
-        });
-
-      case 'integrations':
-        return localSolution.integrations?.map((integration) => {
-          const solutionDetails = allSolutions.find(s => s.id === integration.targetSolutionId);
-          return (
-            <div key={integration.id} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900">{solutionDetails?.name}</h4>
-                  <div className="mt-2 space-y-2">
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>Type: {integration.integrationType}</span>
-                      <span>Flow: {FLOW_TYPES.find(f => f.value === integration.flowType)?.label}</span>
-                      <span>Status: {integration.status}</span>
-                    </div>
-                    {integration.healthCheckUrl && (
-                      <div className="text-sm text-gray-600">
-                        <span className="font-medium">Health Check:</span>{' '}
-                        <a href={integration.healthCheckUrl} target="_blank" rel="noopener noreferrer" 
-                           className="text-indigo-600 hover:text-indigo-500">
-                          {integration.healthCheckUrl}
-                        </a>
-                      </div>
-                    )}
-                    {integration.lastSync && (
-                      <div className="text-sm text-gray-600">
-                        <span className="font-medium">Last Sync:</span>{' '}
-                        {new Date(integration.lastSync).toLocaleString()}
-                      </div>
-                    )}
-                    {integration.config && (
-                      <div className="text-sm text-gray-600">
-                        <span className="font-medium">Config:</span> {JSON.stringify(integration.config)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleEdit(integration.id, 'integrations', integration)}
-                      className="text-gray-400 hover:text-gray-500"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleRemove(integration.id, 'integrations', solutionDetails?.name || '')}
-                      className="text-red-400 hover:text-red-500"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-                <StatusBadge status={integration.status} />
-              </div>
-            </div>
-          );
-        });
-
-      case 'versions':
-        return localSolution.versions?.map((version) => (
-          <div key={version.id} className="border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">v{version.version}</h4>
-                <p className="mt-1 text-sm text-gray-500">{version.changelog}</p>
-              </div>
-              <span className="text-sm text-gray-500">
-                {new Date(version.releasedAt).toLocaleDateString()}
-              </span>
-            </div>
-          </div>
-        ));
-
-      default:
-        return null;
-    }
-  };
-
-  const tabs = [
-    { id: 'collaborations', label: 'Collaborations', icon: Link2 },
-    { id: 'dependencies', label: 'Dependencies', icon: GitBranch },
-    { id: 'integrations', label: 'Integrations', icon: Plug },
-    { id: 'versions', label: 'Versions', icon: Tags },
-  ];
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const newRelation = {
+      ...formData,
+      id: Math.random().toString(36).substr(2, 9),
+      sourceSolutionId: solution.id,
+      dependentSolutionId: solution.id,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    let updatedSolution = { ...currentSolution };
+    
     switch (activeTab) {
       case 'collaborations':
-        onAddCollaboration({ ...formData, sourceSolutionId: localSolution.id });
-        setLocalSolution(prev => ({
-          ...prev,
-          collaborations: [...(prev.collaborations || []), { ...formData, id: crypto.randomUUID(), sourceSolutionId: localSolution.id }]
-        }));
+        await onAddCollaboration(newRelation);
+        updatedSolution.collaborations = [...(updatedSolution.collaborations || []), newRelation];
         break;
       case 'dependencies':
-        onAddDependency({ ...formData, dependentSolutionId: localSolution.id });
-        setLocalSolution(prev => ({
-          ...prev,
-          dependencies: [...(prev.dependencies || []), { ...formData, id: crypto.randomUUID(), dependentSolutionId: localSolution.id }]
-        }));
+        await onAddDependency(newRelation);
+        updatedSolution.dependencies = [...(updatedSolution.dependencies || []), newRelation];
         break;
       case 'integrations':
-        onAddIntegration({ ...formData, sourceSolutionId: localSolution.id });
-        setLocalSolution(prev => ({
-          ...prev,
-          integrations: [...(prev.integrations || []), { ...formData, id: crypto.randomUUID(), sourceSolutionId: localSolution.id }]
-        }));
-        break;
-      case 'versions':
-        onAddVersion({ ...formData, solutionId: localSolution.id });
-        setLocalSolution(prev => ({
-          ...prev,
-          versions: [...(prev.versions || []), { ...formData, id: crypto.randomUUID(), solutionId: localSolution.id }]
-        }));
+        await onAddIntegration(newRelation);
+        updatedSolution.integrations = [...(updatedSolution.integrations || []), newRelation];
         break;
     }
-    setIsAdding(false);
+    
+    // Update the solution in the store to trigger a re-render
+    updateSolution(solution.id, updatedSolution);
+    
+    // Close modal and reset form
+    setShowAddModal(false);
     setFormData({});
-  };
-
-  const handleEdit = (id: string, type: TabType, currentData: any) => {
-    setEditingItem({ id, type });
-    setFormData(currentData);
   };
 
   const handleUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingItem) return;
-
-    switch (editingItem.type) {
+    
+    switch (activeTab) {
       case 'collaborations':
         onUpdateCollaboration(editingItem.id, formData);
-        setLocalSolution(prev => ({
-          ...prev,
-          collaborations: prev.collaborations?.map(c =>
-            c.id === editingItem.id ? { ...c, ...formData } : c
-          )
-        }));
         break;
       case 'dependencies':
         onUpdateDependency(editingItem.id, formData);
-        setLocalSolution(prev => ({
-          ...prev,
-          dependencies: prev.dependencies?.map(d =>
-            d.id === editingItem.id ? { ...d, ...formData } : d
-          )
-        }));
         break;
       case 'integrations':
         onUpdateIntegration(editingItem.id, formData);
-        setLocalSolution(prev => ({
-          ...prev,
-          integrations: prev.integrations?.map(i =>
-            i.id === editingItem.id ? { ...i, ...formData } : i
-          )
-        }));
         break;
     }
-
+    
     setEditingItem(null);
     setFormData({});
   };
@@ -599,25 +112,13 @@ export default function SolutionRelationships({
 
     switch (removingItem.type) {
       case 'collaborations':
-        onRemoveCollaboration(removingItem.id, localSolution.id);
-        setLocalSolution(prev => ({
-          ...prev,
-          collaborations: prev.collaborations?.filter(c => c.id !== removingItem.id)
-        }));
+        onRemoveCollaboration(removingItem.id, solution.id);
         break;
       case 'dependencies':
-        onRemoveDependency(removingItem.id, localSolution.id);
-        setLocalSolution(prev => ({
-          ...prev,
-          dependencies: prev.dependencies?.filter(d => d.id !== removingItem.id)
-        }));
+        onRemoveDependency(removingItem.id, solution.id);
         break;
       case 'integrations':
-        onRemoveIntegration(removingItem.id, localSolution.id);
-        setLocalSolution(prev => ({
-          ...prev,
-          integrations: prev.integrations?.filter(i => i.id !== removingItem.id)
-        }));
+        onRemoveIntegration(removingItem.id, solution.id);
         break;
     }
 
@@ -625,102 +126,545 @@ export default function SolutionRelationships({
     setConfirmText('');
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8">
-          {tabs.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id as TabType)}
-              className={`
-                border-b-2 py-4 px-1 text-sm font-medium ${
-                  activeTab === id
-                    ? 'border-indigo-500 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                }
-              `}
-            >
+  const renderVersionContent = (version: SolutionVersion) => {
+    const getStateColor = (state: SolutionVersion['state']) => {
+      switch (state) {
+        case 'stable': return 'bg-green-100 text-green-700';
+        case 'lts': return 'bg-blue-100 text-blue-700';
+        case 'rc': return 'bg-yellow-100 text-yellow-700';
+        case 'beta': return 'bg-orange-100 text-orange-700';
+        case 'alpha': return 'bg-red-100 text-red-700';
+        case 'deprecated': return 'bg-gray-100 text-gray-700';
+        case 'eol': return 'bg-red-100 text-red-700';
+        default: return 'bg-gray-100 text-gray-600';
+      }
+    };
+
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <h4 className="text-lg font-medium">v{version.version}</h4>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStateColor(version.state)}`}>
+              {(version.state || 'unknown').toUpperCase()}
+            </span>
+          </div>
+        </div>
+
+        {version.changelog && (
+          <div>
+            <h5 className="font-medium mb-2">Changelog</h5>
+            <p className="text-gray-600">{version.changelog}</p>
+          </div>
+        )}
+
+        {version.stabilityScore !== undefined && (
+          <div>
+            <h5 className="font-medium mb-2">Stability Score</h5>
+            <div className="flex items-center">
+              <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-green-500 rounded-full"
+                  style={{ width: `${version.stabilityScore * 100}%` }}
+                />
+              </div>
+              <span className="ml-2 text-sm text-gray-600">
+                {Math.round(version.stabilityScore * 100)}%
+              </span>
+            </div>
+          </div>
+        )}
+
+        {version.supportedUntil && (
+          <div>
+            <h5 className="font-medium mb-2">Support Status</h5>
+            <p className="text-gray-600">
+              Supported until {new Date(version.supportedUntil).toLocaleDateString()}
+            </p>
+          </div>
+        )}
+
+        {version.minimumRequirements && (
+          <div>
+            <h5 className="font-medium mb-2">Minimum Requirements</h5>
+            <div className="space-y-1">
+              {Object.entries(version.minimumRequirements).map(([key, value]) => (
+                <div key={key} className="text-sm">
+                  <span className="font-medium">{key}:</span> {value}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {version.breakingChanges && version.breakingChanges.length > 0 && (
+          <div>
+            <h5 className="font-medium mb-2">Breaking Changes</h5>
+            <ul className="list-disc list-inside space-y-1">
+              {version.breakingChanges.map((change, i) => (
+                <li key={i} className="text-gray-600">{change}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {version.knownIssues && version.knownIssues.length > 0 && (
+          <div>
+            <h5 className="font-medium mb-2">Known Issues</h5>
+            <ul className="list-disc list-inside space-y-1">
+              {version.knownIssues.map((issue, i) => (
+                <li key={i} className="text-gray-600">{issue}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {version.upgradeGuide && (
+          <div>
+            <h5 className="font-medium mb-2">Upgrade Guide</h5>
+            <p className="text-gray-600">{version.upgradeGuide}</p>
+          </div>
+        )}
+
+        {version.approvalStatus && (
+          <div>
+            <h5 className="font-medium mb-2">Approval Status</h5>
+            <div className="space-y-2">
               <div className="flex items-center">
-                <Icon className="w-5 h-5 mr-2" />
-                {label}
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  version.approvalStatus === 'approved' ? 'bg-green-100 text-green-700' :
+                  version.approvalStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  {version.approvalStatus.toUpperCase()}
+                </span>
               </div>
-            </button>
-          ))}
-        </nav>
+              {version.approvedBy && version.approvedBy.length > 0 && (
+                <div className="text-sm text-gray-600">
+                  Approved by: {version.approvedBy.join(', ')}
+                </div>
+              )}
+              {version.approvalNotes && (
+                <p className="text-sm text-gray-600">{version.approvalNotes}</p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
+    );
+  };
 
-      <div className="flex justify-end">
-        <button
-          onClick={() => setIsAdding(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add {activeTab.charAt(0).toUpperCase() + activeTab.slice(0, -1)}
-        </button>
-      </div>
+  const renderForm = () => {
+    switch (activeTab) {
+      case 'collaborations':
+        return (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Collaboration Type</label>
+              <select
+                value={formData.collaborationType || ''}
+                onChange={(e) => setFormData({ ...formData, collaborationType: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                required
+              >
+                <option value="">Select Type</option>
+                <option value="data_sharing">Data Sharing</option>
+                <option value="api_integration">API Integration</option>
+                <option value="shared_resources">Shared Resources</option>
+                <option value="joint_development">Joint Development</option>
+                <option value="service_provision">Service Provision</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Target Solution</label>
+              <select
+                value={formData.targetSolutionId || ''}
+                onChange={(e) => setFormData({ ...formData, targetSolutionId: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              >
+                <option value="">Select Solution</option>
+                {allSolutions
+                  .filter((s) => s.id !== solution.id)
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Flow Type</label>
+              <select
+                value={formData.flowType || 'unidirectional'}
+                onChange={(e) => setFormData({ ...formData, flowType: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              >
+                <option value="unidirectional">Unidirectional</option>
+                <option value="bidirectional">Bidirectional</option>
+                <option value="lateral">Lateral</option>
+              </select>
+            </div>
+          </>
+        );
 
-      {/* Remove Confirmation Modal */}
-      {removingItem && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <AlertTriangle className="h-6 w-6 text-red-600" />
-              </div>
-              <div className="ml-3 w-0 flex-1">
-                <h3 className="text-lg font-medium text-gray-900">Remove Relationship</h3>
-                <div className="mt-2">
-                  <p className="text-sm text-gray-500">
-                    This action cannot be undone. This will permanently remove the relationship
-                    and may impact any dependent systems or workflows.
-                  </p>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Please type <span className="font-semibold">{removingItem.name}</span> to confirm
-                    </label>
-                    <input
-                      type="text"
-                      value={confirmText}
-                      onChange={(e) => setConfirmText(e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                    />
+      case 'dependencies':
+        return (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Dependency Type</label>
+              <select
+                value={formData.dependencyType || ''}
+                onChange={(e) => setFormData({ ...formData, dependencyType: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                required
+              >
+                <option value="">Select Type</option>
+                <option value="runtime">Runtime Dependency</option>
+                <option value="buildtime">Build-time Dependency</option>
+                <option value="development">Development Dependency</option>
+                <option value="testing">Testing Dependency</option>
+                <option value="deployment">Deployment Dependency</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Dependency</label>
+              <select
+                value={formData.dependencySolutionId || ''}
+                onChange={(e) => setFormData({ ...formData, dependencySolutionId: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              >
+                <option value="">Select Solution</option>
+                {allSolutions
+                  .filter((s) => s.id !== solution.id)
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Flow Type</label>
+              <select
+                value={formData.flowType || 'unidirectional'}
+                onChange={(e) => setFormData({ ...formData, flowType: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              >
+                <option value="unidirectional">Unidirectional</option>
+                <option value="bidirectional">Bidirectional</option>
+                <option value="lateral">Lateral</option>
+              </select>
+            </div>
+          </>
+        );
+
+      case 'integrations':
+        return (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Integration Type</label>
+              <select
+                value={formData.integrationType || ''}
+                onChange={(e) => setFormData({ ...formData, integrationType: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                required
+              >
+                <option value="">Select Type</option>
+                <option value="api">API Integration</option>
+                <option value="event_stream">Event Stream</option>
+                <option value="data_pipeline">Data Pipeline</option>
+                <option value="webhook">Webhook</option>
+                <option value="file_sync">File Sync</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Target Solution</label>
+              <select
+                value={formData.targetSolutionId || ''}
+                onChange={(e) => setFormData({ ...formData, targetSolutionId: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              >
+                <option value="">Select Solution</option>
+                {allSolutions
+                  .filter((s) => s.id !== solution.id)
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Flow Type</label>
+              <select
+                value={formData.flowType || 'unidirectional'}
+                onChange={(e) => setFormData({ ...formData, flowType: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              >
+                <option value="unidirectional">Unidirectional</option>
+                <option value="bidirectional">Bidirectional</option>
+                <option value="lateral">Lateral</option>
+              </select>
+            </div>
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'collaborations':
+        return currentSolution.collaborations?.map((collab) => {
+          const targetSolution = allSolutions.find((s) => s.id === collab.targetSolutionId);
+          return (
+            <div key={collab.id} className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900">{targetSolution?.name}</h4>
+                  <div className="mt-1 space-y-1">
+                    <p className="text-sm text-gray-500">Type: {collab.collaborationType}</p>
+                    <p className="text-sm text-gray-500">Flow: {collab.flowType}</p>
+                    <p className="text-sm text-gray-500">Status: {collab.status}</p>
+                    <p className="text-sm text-gray-500">
+                      Started: {new Date(collab.startDate).toLocaleDateString()}
+                      {collab.endDate && ` - Ends: ${new Date(collab.endDate).toLocaleDateString()}`}
+                    </p>
                   </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setEditingItem(collab);
+                      setFormData(collab);
+                    }}
+                    className="text-indigo-600 hover:text-indigo-900"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleRemove(collab.id, 'collaborations', targetSolution?.name || '')}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    Remove
+                  </button>
                 </div>
               </div>
             </div>
-            <div className="mt-6 flex justify-end space-x-3">
+          );
+        });
+
+      case 'dependencies':
+        return currentSolution.dependencies?.map((dep) => {
+          const dependencySolution = allSolutions.find((s) => s.id === dep.dependencySolutionId);
+          return (
+            <div key={dep.id} className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900">{dependencySolution?.name}</h4>
+                  <div className="mt-1 space-y-1">
+                    <p className="text-sm text-gray-500">Type: {dep.dependencyType}</p>
+                    <p className="text-sm text-gray-500">Flow: {dep.flowType}</p>
+                    <p className="text-sm text-gray-500">Criticality: {dep.criticality}</p>
+                    {dep.requirements && (
+                      <p className="text-sm text-gray-500">
+                        Requirements: {JSON.stringify(dep.requirements)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setEditingItem(dep);
+                      setFormData(dep);
+                    }}
+                    className="text-indigo-600 hover:text-indigo-900"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleRemove(dep.id, 'dependencies', dependencySolution?.name || '')}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        });
+
+      case 'integrations':
+        return currentSolution.integrations?.map((integration) => {
+          const targetSolution = allSolutions.find((s) => s.id === integration.targetSolutionId);
+          return (
+            <div key={integration.id} className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900">{targetSolution?.name}</h4>
+                  <div className="mt-1 space-y-1">
+                    <p className="text-sm text-gray-500">Type: {integration.integrationType}</p>
+                    <p className="text-sm text-gray-500">Flow: {integration.flowType}</p>
+                    <p className="text-sm text-gray-500">Status: {integration.status}</p>
+                    {integration.lastSync && (
+                      <p className="text-sm text-gray-500">
+                        Last Sync: {new Date(integration.lastSync).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setEditingItem(integration);
+                      setFormData(integration);
+                    }}
+                    className="text-indigo-600 hover:text-indigo-900"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleRemove(integration.id, 'integrations', targetSolution?.name || '')}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        });
+
+      case 'versions':
+        return currentSolution.versions?.map((version) => (
+          <div key={version.id} className="relative">
+            <div className="absolute top-4 right-4 flex items-center space-x-2 z-10">
               <button
-                type="button"
-                onClick={() => setRemovingItem(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                onClick={() => {
+                  setEditingItem(version);
+                  setFormData(version);
+                }}
+                className="text-indigo-600 hover:text-indigo-900"
               >
-                Cancel
+                Edit
               </button>
               <button
-                type="button"
-                onClick={confirmRemove}
-                disabled={confirmText !== removingItem.name}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+                onClick={() => handleRemove(version.id, 'versions', `v${version.version}`)}
+                className="text-red-600 hover:text-red-900"
               >
-                Remove Relationship
+                Remove
               </button>
             </div>
+            {renderVersionContent(version)}
+          </div>
+        ));
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          {[
+            { id: 'collaborations', label: 'Collaborations', icon: Users },
+            { id: 'dependencies', label: 'Dependencies', icon: GitBranch },
+            { id: 'integrations', label: 'Integrations', icon: Package },
+            { id: 'versions', label: 'Versions', icon: Package }
+          ].map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as TabType)}
+                className={`
+                  flex items-center space-x-2 pb-4 px-1 border-b-2 font-medium text-sm
+                  ${activeTab === tab.id
+                    ? 'border-indigo-500 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                `}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex justify-end">
+          <button
+            onClick={() => activeTab === 'versions' ? setShowVersionModal(true) : setShowAddModal(true)}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            {activeTab === 'versions' ? 'Add Version' : 
+             activeTab === 'dependencies' ? 'Add Dependency' :
+             `Add ${activeTab.slice(0, -1)}`}
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {renderContent()}
+        </div>
+      </div>
+
+      {/* Add Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-medium text-gray-900">Add {activeTab.slice(0, -1)}</h3>
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setFormData({});
+                }}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {renderForm()}
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setFormData({});
+                  }}
+                  className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                >
+                  Add
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Form Modal */}
-      {(isAdding || editingItem) && (
+      {/* Edit Modal */}
+      {editingItem && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-medium text-gray-900">
-                {isAdding ? 'Add' : 'Edit'} {activeTab.slice(0, -1)}
-              </h3>
+              <h3 className="text-lg font-medium text-gray-900">Edit {activeTab.slice(0, -1)}</h3>
               <button
                 onClick={() => {
-                  setIsAdding(false);
                   setEditingItem(null);
                   setFormData({});
                 }}
@@ -729,26 +673,25 @@ export default function SolutionRelationships({
                 <X className="w-6 h-6" />
               </button>
             </div>
-
-            <form onSubmit={editingItem ? handleUpdate : handleSubmit} className="space-y-4">
+            
+            <form onSubmit={handleUpdate} className="space-y-4">
               {renderForm()}
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-end space-x-3 pt-4">
                 <button
                   type="button"
                   onClick={() => {
-                    setIsAdding(false);
                     setEditingItem(null);
                     setFormData({});
                   }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                  className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                 >
-                  {isAdding ? 'Add' : 'Update'}
+                  Update
                 </button>
               </div>
             </form>
@@ -756,7 +699,168 @@ export default function SolutionRelationships({
         </div>
       )}
 
-      <div className="space-y-4">{renderContent()}</div>
+      {removingItem && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Removal</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Type <span className="font-medium">{removingItem.name}</span> to confirm removal.
+            </p>
+            <input
+              type="text"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm mb-4"
+            />
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setRemovingItem(null)}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmRemove}
+                disabled={confirmText !== removingItem.name}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Version Modal */}
+      {showVersionModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-medium text-gray-900">Add Version</h3>
+              <button
+                onClick={() => {
+                  setShowVersionModal(false);
+                  setFormData({});
+                }}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              onAddVersion({
+                ...formData,
+                solutionId: solution.id,
+                releasedAt: new Date().toISOString(),
+              });
+              setShowVersionModal(false);
+              setFormData({});
+            }} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Version</label>
+                <input
+                  type="text"
+                  value={formData.version || ''}
+                  onChange={(e) => setFormData({ ...formData, version: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="e.g., 1.0.0"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">State</label>
+                <select
+                  value={formData.state || ''}
+                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  required
+                >
+                  <option value="">Select State</option>
+                  <option value="alpha">Alpha</option>
+                  <option value="beta">Beta</option>
+                  <option value="rc">Release Candidate</option>
+                  <option value="stable">Stable</option>
+                  <option value="lts">Long Term Support</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Changelog</label>
+                <textarea
+                  value={formData.changelog || ''}
+                  onChange={(e) => setFormData({ ...formData, changelog: e.target.value })}
+                  rows={4}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="List the changes in this version..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Breaking Changes</label>
+                <textarea
+                  value={formData.breakingChanges?.join('\n') || ''}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    breakingChanges: e.target.value.split('\n').filter(Boolean)
+                  })}
+                  rows={3}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="One breaking change per line..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Known Issues</label>
+                <textarea
+                  value={formData.knownIssues?.join('\n') || ''}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    knownIssues: e.target.value.split('\n').filter(Boolean)
+                  })}
+                  rows={3}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="One issue per line..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Upgrade Guide</label>
+                <textarea
+                  value={formData.upgradeGuide || ''}
+                  onChange={(e) => setFormData({ ...formData, upgradeGuide: e.target.value })}
+                  rows={3}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="Instructions for upgrading to this version..."
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowVersionModal(false);
+                    setFormData({});
+                  }}
+                  className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                >
+                  Add Version
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
