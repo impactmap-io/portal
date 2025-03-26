@@ -2,11 +2,16 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { subscribeWithSelector, devtools } from 'zustand/middleware';
 import type { Solution } from '../types';
+import type { Node, Edge } from 'reactflow';
 import { solutions as seedSolutions } from '../data/seed';
 
 interface SolutionState {
   solutions: Solution[];
   activeSolutionId: string | null;
+  nodePositions: Record<string, { x: number; y: number }>;
+  edges: Edge[];
+  updateNodePosition: (nodeId: string, position: { x: number; y: number }) => void;
+  updateEdges: (edges: Edge[]) => void;
   addSolution: (solution: Omit<Solution, 'id' | 'createdAt' | 'updatedAt'>) => void;
   addCollaboration: (collaboration: Partial<SolutionCollaboration>) => void;
   addDependency: (dependency: Partial<SolutionDependency>) => void;
@@ -28,6 +33,19 @@ export const useSolutionStore = create<SolutionState>()(
     (set) => ({
       solutions: seedSolutions,
       activeSolutionId: null,
+      nodePositions: {},
+      edges: [],
+      
+      updateNodePosition: (nodeId, position) =>
+        set((state) => ({
+          nodePositions: {
+            ...state.nodePositions,
+            [nodeId]: position,
+          },
+        })),
+        
+      updateEdges: (edges) =>
+        set({ edges }),
       addSolution: (solution) =>
         set((state) => ({
           solutions: [

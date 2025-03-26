@@ -126,22 +126,27 @@ const getInitialNodePositions = (solutions: Solution[], edges: Edge[]) => {
 export default function SolutionMap() {
   const { solutions } = useSolutionStore();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const [updateKey, setUpdateKey] = useState(0);
+  const { nodePositions, edges: savedEdges, updateNodePosition, updateEdges } = useSolutionStore();
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
 
   // Subscribe to solution store changes
   useEffect(() => {
     const unsubscribe = useSolutionStore.subscribe(
       (state) => state.solutions,
       () => {
-        setUpdateKey(prev => prev + 1);
+        // Recalculate edges when solutions change
+        const newEdges = createEdges(solutions);
+        setEdges(newEdges);
+        updateEdges(newEdges);
       }
     );
     return () => unsubscribe();
   }, []);
   
-  // Create edges and nodes using useMemo
-  const { initialEdges, initialNodes } = useMemo(() => {
-    const edges = solutions.flatMap((solution) => [
+  // Extract edge creation logic
+  const createEdges = (solutions: Solution[]) => {
+    return solutions.flatMap((solution) => [
       // Collaboration edges
       ...(solution.collaborations?.map((collab) => ({
         id: `collab-${collab.id}`,
@@ -178,19 +183,39 @@ export default function SolutionMap() {
         ...getEdgeMarkers(integration.flowType || 'unidirectional'),
       })) || []),
     ]);
+  };
 
-    // Calculate node positions
-    const nodePositions = getInitialNodePositions(solutions, edges);
-
+  // Create nodes using useMemo
+  const initialNodes = useMemo(() => {
+    const currentEdges = createEdges(solutions);
+    
     // Create nodes with calculated positions
     const nodes = solutions.map((solution) => ({
       id: solution.id,
       type: NODE_TYPE,
-      position: nodePositions[solution.id],
+      position: nodePositions[solution.id] || getInitialNodePositions(solutions, currentEdges)[solution.id],
       data: {
         label: (
           <div className="text-sm">
-            <div className="font-medium">{solution.name}</div>
+            <div className="flex items-center justify-between">
+              <span className="font-medium">{solution.name}</span>
+              {solution.versions?.length > 0 && (
+                <span className={`text-xs px-1.5 py-0.5 rounded ml-2 ${
+                  solution.versions[solution.versions.length - 1].state === 'stable' ? 'bg-green-100 text-green-700' :
+                  solution.versions[solution.versions.length - 1].state === 'lts' ? 'bg-blue-100 text-blue-700' :
+                  solution.versions[solution.versions.length - 1].state === 'rc' ? 'bg-yellow-100 text-yellow-700' :
+                  solution.versions[solution.versions.length - 1].state === 'beta' ? 'bg-orange-100 text-orange-700' :
+                  solution.versions[solution.versions.length - 1].state === 'alpha' ? 'bg-red-100 text-red-700' :
+                  solution.versions[solution.versions.length - 1].state === 'deprecated' ? 'bg-gray-100 text-gray-700' :
+                  'bg-gray-100 text-gray-600'
+                }`}>
+                  v{solution.versions[solution.versions.length - 1].version}
+                  <span className="ml-1 opacity-75">
+                    ({solution.versions[solution.versions.length - 1].state})
+                  </span>
+                </span>
+              )}
+            </div>
             <div className="text-xs text-gray-500">{solution.category}</div>
           </div>
         ),
@@ -198,23 +223,32 @@ export default function SolutionMap() {
       style: getNodeStyle(solution.category),
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
+      className: 'min-w-[200px]', // Ensure enough space for version badge
     }));
 
-    return { initialEdges: edges, initialNodes: nodes };
-  }, [solutions, updateKey]);
-
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    return nodes;
+  }, [solutions, nodePositions]);
 
   // Update nodes and edges when solutions change
   useEffect(() => {
     setNodes(initialNodes);
-    setEdges(initialEdges);
-  }, [initialNodes, initialEdges, setNodes, setEdges]);
+    const newEdges = createEdges(solutions);
+    setEdges(newEdges);
+    updateEdges(newEdges);
+  }, [initialNodes, setNodes, solutions, updateEdges]);
+
+  // Save node positions on change
+  const onNodeDragStop = useCallback((_: React.MouseEvent, node: Node) => {
+    updateNodePosition(node.id, node.position);
+  }, [updateNodePosition]);
 
   const onConnect = useCallback((params: any) => {
-    setEdges((eds) => [...eds, { ...params, type: 'smoothstep', animated: true }]);
-  }, [setEdges]);
+    setEdges((eds) => {
+      const newEdges = [...eds, { ...params, type: 'smoothstep', animated: true }];
+      updateEdges(newEdges);
+      return newEdges;
+    });
+  }, [setEdges, updateEdges]);
 
   return (
     <div ref={reactFlowWrapper} className="w-full h-full min-h-[500px] bg-white rounded-lg border border-gray-200">
@@ -223,6 +257,8 @@ export default function SolutionMap() {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeDragStop={onNodeDragStop}
+        onNodeDrag={onNodeDragStop}
         onConnect={onConnect}
         defaultEdgeOptions={{
           type: 'smoothstep',

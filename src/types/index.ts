@@ -87,8 +87,18 @@ export interface SolutionVersion {
   id: string;
   solutionId: string;
   version: string;
+  state: 'alpha' | 'beta' | 'rc' | 'stable' | 'lts' | 'deprecated' | 'eol';
   changelog?: string;
   compatibility?: Record<string, any>;
+  stabilityScore?: number;
+  supportedUntil?: string;
+  minimumRequirements?: Record<string, any>;
+  breakingChanges?: string[];
+  knownIssues?: string[];
+  upgradeGuide?: string;
+  approvalStatus?: string;
+  approvedBy?: string[];
+  approvalNotes?: string;
   releasedAt: string;
   releasedBy: string;
   createdAt: string;
