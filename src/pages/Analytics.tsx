@@ -82,7 +82,7 @@ export default function Analytics() {
       value: `${Math.round((completedDeliverables / deliverables.length) * 100)}%`,
       icon: CheckCircle,
       description: `${completedDeliverables} completed, ${plannedDeliverables} planned`,
-      color: 'text-indigo-600',
+      color: 'text-black',
       bgColor: 'bg-indigo-100',
     },
     {
@@ -137,7 +137,7 @@ export default function Analytics() {
       <div className="flex justify-between items-center">
         <div className="flex space-x-4">
           <select
-            className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
@@ -147,7 +147,7 @@ export default function Analytics() {
             ))}
           </select>
           <select
-            className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
           >
@@ -159,7 +159,7 @@ export default function Analytics() {
         </div>
         <button
           onClick={generateReport}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800"
         >
           <Download className="w-4 h-4 mr-2" />
           Export Report

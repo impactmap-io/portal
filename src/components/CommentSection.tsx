@@ -80,12 +80,12 @@ export default function CommentSection({ entityId, entityType, entityTitle }: Co
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Add a comment..."
           minRows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-indigo-500"
         />
         <button
           type="submit"
           disabled={!newComment.trim()}
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+          className="px-4 py-2 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800 disabled:opacity-50"
         >
           Post Comment
         </button>
@@ -122,7 +122,7 @@ export default function CommentSection({ entityId, entityType, entityTitle }: Co
                     className={`flex items-center space-x-1 px-2 py-1 rounded-md text-sm transition-colors
                       ${
                         hasReacted
-                          ? 'bg-indigo-50 text-indigo-600'
+                          ? 'bg-indigo-50 text-black'
                           : 'hover:bg-gray-50 text-gray-500'
                       }`}
                   >

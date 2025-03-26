@@ -23,7 +23,7 @@ const SetupItem = ({ title, description, icon: Icon, isCompleted = false, onClic
     </div>
     <div className="mb-4">
       <div className="w-12 h-12 rounded-lg bg-indigo-50 flex items-center justify-center">
-        <Icon className="w-6 h-6 text-indigo-600" />
+        <Icon className="w-6 h-6 text-black" />
       </div>
     </div>
     <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
@@ -31,8 +31,8 @@ const SetupItem = ({ title, description, icon: Icon, isCompleted = false, onClic
     <button
       onClick={onClick}
       className="w-full px-4 py-2 text-sm font-medium rounded-md shadow-sm
-        text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none
-        focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        text-white bg-black hover:bg-gray-800 focus:outline-none
+        focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
     >
       Create {title}
     </button>

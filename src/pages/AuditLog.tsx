@@ -103,7 +103,7 @@ export default function AuditLog() {
                     placeholder="Search logs..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -133,7 +133,7 @@ export default function AuditLog() {
                   <select
                     value={filter.level || ''}
                     onChange={(e) => setFilter({ ...filter, level: e.target.value as LogLevel || undefined })}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-indigo-500 sm:text-sm rounded-md"
                   >
                     <option value="">All Levels</option>
                     {LEVELS.map((level) => (
@@ -149,7 +149,7 @@ export default function AuditLog() {
                   <select
                     value={filter.category || ''}
                     onChange={(e) => setFilter({ ...filter, category: e.target.value as LogCategory || undefined })}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-indigo-500 sm:text-sm rounded-md"
                   >
                     <option value="">All Categories</option>
                     {CATEGORIES.map((category) => (
@@ -167,13 +167,13 @@ export default function AuditLog() {
                       type="date"
                       value={filter.startDate || ''}
                       onChange={(e) => setFilter({ ...filter, startDate: e.target.value || undefined })}
-                      className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                      className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     />
                     <input
                       type="date"
                       value={filter.endDate || ''}
                       onChange={(e) => setFilter({ ...filter, endDate: e.target.value || undefined })}
-                      className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                      className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     />
                   </div>
                 </div>

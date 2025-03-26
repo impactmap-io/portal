@@ -33,7 +33,7 @@ export default function ImpactMaps() {
         <h2 className="text-lg font-medium text-gray-900">Impact Maps</h2>
         <div className="flex space-x-4">
           <FeedbackDialog />
-          <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+          <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800">
             <Plus className="w-4 h-4 mr-2" />
             New Impact Map
           </button>
@@ -70,7 +70,7 @@ export default function ImpactMaps() {
                           title: goal.title,
                         });
                       }}
-                      className="mt-2 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-500"
+                      className="mt-2 inline-flex items-center text-sm text-black hover:text-gray-800"
                     >
                       <MessageSquare className="w-4 h-4 mr-1" />
                       Discuss
@@ -258,7 +258,7 @@ export default function ImpactMaps() {
                                 <div className="ml-8 mt-4">
                                   <button
                                     onClick={() => toggleScenarios(impact.id)}
-                                    className="flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                                    className="flex items-center text-sm font-medium text-black hover:text-gray-800"
                                   >
                                     <TrendingUp className="w-4 h-4 mr-2" />
                                     View Scenarios & Recommendations

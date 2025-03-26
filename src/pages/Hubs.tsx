@@ -225,7 +225,7 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
                     type="text"
                     defaultValue={hub.name}
                     onChange={handleFormChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     Lowercase letters, numbers, and hyphens only. This will be used in URLs and API endpoints.
@@ -236,7 +236,7 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
                   <input
                     type="text"
                     defaultValue={hub.displayName}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                   />
                 </div>
                 <div>
@@ -245,7 +245,7 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
                     <input
                       type="text"
                       defaultValue={hub.domain?.replace('.impactmap.com', '')}
-                      className="flex-1 rounded-none rounded-l-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                      className="flex-1 rounded-none rounded-l-md border-gray-300 focus:border-indigo-500 focus:ring-gray-500"
                     />
                     <span className="inline-flex items-center rounded-r-md border border-l-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
                       .impactmap.com
@@ -266,12 +266,12 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
                   <label className="block text-sm font-medium text-gray-700">Organization Name</label>
                   <input
                     type="text"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Industry</label>
-                  <select className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                  <select className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500">
                     <option>Technology</option>
                     <option>Healthcare</option>
                     <option>Finance</option>
@@ -289,7 +289,7 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
             <div>
               <h3 className="text-lg font-medium text-gray-900">User Management</h3>
               <div className="mt-4">
-                <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800">
                   <Plus className="w-4 h-4 mr-2" />
                   Invite User
                 </button>
@@ -342,7 +342,7 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
                       You are currently on the {hub.billing?.plan || 'Free'} plan.
                     </p>
                     <div className="mt-4">
-                      <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                      <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800">
                         Upgrade Plan
                       </button>
                     </div>
@@ -364,7 +364,7 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
                     <div className="mt-4 space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-500">No payment methods added yet</span>
-                        <button className="text-sm text-indigo-600 hover:text-indigo-500">
+                        <button className="text-sm text-black hover:text-gray-800">
                           Add method
                         </button>
                       </div>
@@ -397,7 +397,7 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
                     <p className="mt-2 text-sm text-gray-500">
                       Contact our support team for assistance with your hub.
                     </p>
-                    <button className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                    <button className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800">
                       Contact Support
                     </button>
                   </div>
@@ -410,7 +410,7 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
                     </p>
                     <a
                       href="#"
-                      className="mt-4 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-500"
+                      className="mt-4 inline-flex items-center text-sm text-black hover:text-gray-800"
                     >
                       View Documentation
                       <ChevronRight className="ml-1 h-4 w-4" />
@@ -472,7 +472,7 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
           </div>
           <div className="p-6 border-t border-gray-200">
             <button
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800"
               onClick={handleSaveChanges}
             >
               Save Changes
@@ -682,7 +682,7 @@ const Hubs = () => {
         </div>
         <button
           onClick={() => updateFormState({ isCreating: true })}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800"
         >
           <Plus className="w-4 h-4 mr-2" />
           New Hub
@@ -700,7 +700,7 @@ const Hubs = () => {
                   placeholder="Search hubs..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-gray-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
             </div>
@@ -709,7 +709,7 @@ const Hubs = () => {
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value as typeof filter)}
-                className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-indigo-500"
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
@@ -740,7 +740,7 @@ const Hubs = () => {
                 {isSubmitting ? (
                   <div className="p-8 flex flex-col items-center justify-center">
                     <div className="animate-spin mb-4">
-                      <Loader className="h-10 w-10 text-indigo-600" />
+                      <Loader className="h-10 w-10 text-black" />
                     </div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">Creating Your Hub</h3>
                     <p className="text-gray-500">{progressMessage}</p>
@@ -755,7 +755,7 @@ const Hubs = () => {
                               {index > 0 && (
                                 <div className={cn(
                                   "flex-1 h-0.5",
-                                  index <= currentStep ? "bg-indigo-600" : "bg-gray-200"
+                                  index <= currentStep ? "bg-black" : "bg-gray-200"
                                 )}></div>
                               )}
                               <div className="relative flex items-center justify-center">
@@ -763,9 +763,9 @@ const Hubs = () => {
                                   className={cn(
                                     "h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium",
                                     index < currentStep
-                                      ? "bg-indigo-600 text-white"
+                                      ? "bg-black text-white"
                                       : index === currentStep
-                                      ? "bg-indigo-600 text-white"
+                                      ? "bg-black text-white"
                                       : "bg-gray-200 text-gray-500"
                                   )}
                                 >
@@ -800,7 +800,7 @@ const Hubs = () => {
                               type="text"
                               value={formData.name}
                               onChange={(e) => updateFormData({ name: e.target.value })}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                               placeholder="my-hub-name"
                               required
                             />
@@ -819,7 +819,7 @@ const Hubs = () => {
                               type="text"
                               value={formData.displayName}
                               onChange={(e) => updateFormData({ displayName: e.target.value })}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                               placeholder="My Hub Name"
                               required
                             />
@@ -835,7 +835,7 @@ const Hubs = () => {
                               value={formData.description}
                               onChange={(e) => updateFormData({ description: e.target.value })}
                               rows={3}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                               placeholder="A brief description of this hub"
                             ></textarea>
                           </div>
@@ -851,7 +851,7 @@ const Hubs = () => {
                                 type="text"
                                 value={formData.domain}
                                 onChange={(e) => updateFormData({ domain: e.target.value })}
-                                className="flex-1 rounded-none rounded-l-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                                className="flex-1 rounded-none rounded-l-md border-gray-300 focus:border-indigo-500 focus:ring-gray-500"
                                 placeholder="your-hub-name"
                               />
                               <span className="inline-flex items-center rounded-r-md border border-l-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
@@ -876,7 +876,7 @@ const Hubs = () => {
                               onChange={(e) => updateFormData({
                                 organization: { ...formData.organization, name: e.target.value }
                               })}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                               required
                             />
                           </div>
@@ -887,7 +887,7 @@ const Hubs = () => {
                               onChange={(e) => updateFormData({
                                 organization: { ...formData.organization, industry: e.target.value }
                               })}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                               required
                             >
                               <option value="">Select Industry</option>
@@ -907,7 +907,7 @@ const Hubs = () => {
                               onChange={(e) => updateFormData({
                                 organization: { ...formData.organization, size: e.target.value }
                               })}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
                               required
                             >
                               <option value="">Select Size</option>
@@ -976,7 +976,7 @@ const Hubs = () => {
                                     <div className="flex justify-between">
                                       <h3 className="text-sm font-medium text-gray-900">{plan.name}</h3>
                                       {formData.plan === plan.id && (
-                                        <div className="h-5 w-5 rounded-full bg-indigo-600 flex items-center justify-center">
+                                        <div className="h-5 w-5 rounded-full bg-black flex items-center justify-center">
                                           <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M3.5 6L5.5 8L8.5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                           </svg>
@@ -1021,7 +1021,7 @@ const Hubs = () => {
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
+                      className="px-4 py-2 text-sm font-medium rounded-md bg-black text-white hover:bg-gray-800"
                     >
                       {currentStep === FORM_STEPS.length - 1 ? 'Create Hub' : 'Next'}
                     </button>
