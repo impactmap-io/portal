@@ -115,6 +115,17 @@ export default function Solutions() {
       addSolution({
         ...formData,
         status: 'active',
+        owner: {
+          id: '',
+          name: '',
+          role: 'owner'
+        },
+        team: [{
+          id: '',
+          name: '',
+          role: 'member'
+        }],
+        metrics: {}
       });
       setIsCreating(false);
     }
@@ -304,7 +315,7 @@ export default function Solutions() {
                               disabled={disabled}
                               onClick={() => setFormData(prev => ({
                                 ...prev,
-                                repository: { ...prev.repository, type: id as any }
+                                repository: { type: id as 'github' | 'gitlab' | 'bitbucket', url: prev.repository?.url || '' }
                               }))}
                               className={`flex items-center px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
                                 disabled
@@ -550,7 +561,10 @@ export default function Solutions() {
                 onUpdateTeam={(team) => {
                   const [owner, ...members] = team;
                   updateSolution(teamSolution.id, {
-                    owner,
+                    owner: {
+                      ...owner,
+                      role: 'owner'
+                    },
                     team: members
                   });
                 }}
