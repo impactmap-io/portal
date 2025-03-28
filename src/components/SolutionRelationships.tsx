@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { GitBranch, Package, Users, Plus, X } from 'lucide-react';
 import type { Solution, SolutionCollaboration, SolutionDependency, SolutionIntegration, SolutionVersion } from '../types';
 import { useSolutionStore } from '../store/solutionStore';
@@ -48,11 +48,9 @@ export default function SolutionRelationships({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const newRelation = {
+    let newRelation: any = {
       ...formData,
       id: Math.random().toString(36).substr(2, 9),
-      sourceSolutionId: solution.id,
-      dependentSolutionId: solution.id,
       status: 'active',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -62,14 +60,40 @@ export default function SolutionRelationships({
     
     switch (activeTab) {
       case 'collaborations':
+        // Add required fields for SolutionCollaboration
+        newRelation = {
+          ...newRelation,
+          sourceSolutionId: solution.id,
+          targetSolutionId: formData.targetSolutionId || '',
+          collaborationType: formData.collaborationType || 'default',
+          flowType: formData.flowType || 'unidirectional',
+          startDate: formData.startDate || new Date().toISOString()
+        };
         await onAddCollaboration(newRelation);
         updatedSolution.collaborations = [...(updatedSolution.collaborations || []), newRelation];
         break;
       case 'dependencies':
+        // Add required fields for SolutionDependency
+        newRelation = {
+          ...newRelation,
+          dependentSolutionId: solution.id,
+          dependencySolutionId: formData.dependencySolutionId || '',
+          dependencyType: formData.dependencyType || 'default',
+          flowType: formData.flowType || 'unidirectional',
+          criticality: formData.criticality || 'medium'
+        };
         await onAddDependency(newRelation);
         updatedSolution.dependencies = [...(updatedSolution.dependencies || []), newRelation];
         break;
       case 'integrations':
+        // Add required fields for SolutionIntegration
+        newRelation = {
+          ...newRelation,
+          sourceSolutionId: solution.id,
+          targetSolutionId: formData.targetSolutionId || '',
+          integrationType: formData.integrationType || 'default',
+          flowType: formData.flowType || 'unidirectional'
+        };
         await onAddIntegration(newRelation);
         updatedSolution.integrations = [...(updatedSolution.integrations || []), newRelation];
         break;
@@ -304,6 +328,15 @@ export default function SolutionRelationships({
                 <option value="lateral">Lateral</option>
               </select>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Start Date</label>
+              <input
+                type="date"
+                value={formData.startDate || ''}
+                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
+              />
+            </div>
           </>
         );
 
@@ -353,6 +386,18 @@ export default function SolutionRelationships({
                 <option value="unidirectional">Unidirectional</option>
                 <option value="bidirectional">Bidirectional</option>
                 <option value="lateral">Lateral</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Criticality</label>
+              <select
+                value={formData.criticality || 'medium'}
+                onChange={(e) => setFormData({ ...formData, criticality: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
               </select>
             </div>
           </>
