@@ -43,6 +43,7 @@ export default function Solutions() {
   const [editingSolutionId, setEditingSolutionId] = useState<string | null>(null);
   const [formData, setFormData] = useState<SolutionFormData>(initialFormData);
   const [isImportingRepo, setIsImportingRepo] = useState(false);
+  const [isNotificationDismissed, setIsNotificationDismissed] = useState(false);
   const [filter, setFilter] = useState<'all' | 'active' | 'archived'>('active');
   const [categoryFilter, setCategoryFilter] = useState<Solution['category'] | 'all'>('all');
   const [search, setSearch] = useState('');
@@ -114,6 +115,17 @@ export default function Solutions() {
       addSolution({
         ...formData,
         status: 'active',
+        owner: {
+          id: '',
+          name: '',
+          role: 'owner'
+        },
+        team: [{
+          id: '',
+          name: '',
+          role: 'member'
+        }],
+        metrics: {}
       });
       setIsCreating(false);
     }
@@ -261,11 +273,40 @@ export default function Solutions() {
                   </button>
                 </div>
 
+                {!isImportingRepo && !isNotificationDismissed && (
+                  <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg relative">
+                    <button
+                      onClick={() => setIsNotificationDismissed(true)}
+                      className="absolute top-2 right-2 text-yellow-400 hover:text-yellow-500"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <Shield className="h-5 w-5 text-yellow-400" />
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-yellow-800">Limited Tracking Capabilities</h3>
+                        <div className="mt-2 text-sm text-yellow-700">
+                          <p>Creating a solution manually will limit your ability to:</p>
+                          <ul className="list-disc list-inside mt-2 space-y-1">
+                            <li>Track detailed outcomes and impact metrics</li>
+                            <li>Monitor goal progress and completion</li>
+                            <li>Analyze workflow efficiency</li>
+                            <li>Generate comprehensive impact reports</li>
+                          </ul>
+                          <p className="mt-2">For full tracking capabilities, consider importing from a Git repository instead.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {isImportingRepo && (
-                    <div className="space-y-4 mb-6 p-4 bg-white rounded-lg border border-gray-200">
+                    <div className="space-y-4 mb-6 p-6 bg-white rounded-lg border-2 border-gray-200">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Repository Type</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Repository Type</label>
                         <div className="mt-2 flex space-x-4">
                           {REPO_TYPES.map(({ id, name, icon: Icon, disabled }) => (
                             <button
@@ -274,15 +315,15 @@ export default function Solutions() {
                               disabled={disabled}
                               onClick={() => setFormData(prev => ({
                                 ...prev,
-                                repository: { ...prev.repository, type: id as any }
+                                repository: { type: id as 'github' | 'gitlab' | 'bitbucket', url: prev.repository?.url || '' }
                               }))}
-                              className={`flex items-center px-4 py-2 rounded-md ${
+                              className={`flex items-center px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
                                 disabled
-                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                                  ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200'
                                   : formData.repository?.type === id
-                                  ? 'bg-indigo-100 text-indigo-700 border-indigo-200'
-                                  : 'bg-white text-gray-700 border-gray-200'
-                              } border`}
+                                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                              }`}
                             >
                               <Icon className="w-5 h-5 mr-2" />
                               {name}
@@ -302,7 +343,6 @@ export default function Solutions() {
                           }));
                         }}
                         onInstallApp={() => {
-                          // This will be handled by your GitHub App installation flow
                           window.location.href = '/api/github/install';
                         }}
                       />
@@ -310,40 +350,40 @@ export default function Solutions() {
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500 sm:text-sm"
+                      className="block w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white shadow-sm hover:border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200 text-gray-900 placeholder-gray-400"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Description</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       rows={3}
-                      className="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500 sm:text-sm"
+                      className="block w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white shadow-sm hover:border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200 text-gray-900 placeholder-gray-400 resize-none"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Category</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                     <select
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value as Solution['category'] })}
-                      className="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500 sm:text-sm group"
+                      className="block w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white shadow-sm hover:border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200 text-gray-900 appearance-none cursor-pointer"
                     >
                       <option value="product">Product - Standalone Application</option>
                       <option value="platform">Platform - Foundation System</option>
                       <option value="service">Service - Operational Capability</option>
                       <option value="integration">Integration - Solution Connector</option>
                     </select>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="mt-2 text-sm text-gray-600">
                       {formData.category && categoryInfo[formData.category].description}
                     </p>
                   </div>
@@ -521,7 +561,10 @@ export default function Solutions() {
                 onUpdateTeam={(team) => {
                   const [owner, ...members] = team;
                   updateSolution(teamSolution.id, {
-                    owner,
+                    owner: {
+                      ...owner,
+                      role: 'owner'
+                    },
                     team: members
                   });
                 }}
