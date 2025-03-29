@@ -7,6 +7,7 @@ import RepositorySelector from '../components/RepositorySelector';
 import TeamManagement from '../components/TeamManagement';
 import SolutionRelationships from '../components/SolutionRelationships'; 
 import SolutionMap from '../components/SolutionMap';
+import { ExportJsonLdButton } from '../features/export';
 
 interface SolutionFormData {
   name: string;
@@ -150,6 +151,7 @@ export default function Solutions() {
           <h2 className="text-lg font-medium text-gray-900">Solutions</h2>
         </div>
         <div className="flex items-center space-x-4">
+          <ExportJsonLdButton className="border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 text-sm font-medium" />
           <button
             onClick={() => setShowSolutionMap(true)}
             className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"

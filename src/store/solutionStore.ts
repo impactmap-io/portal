@@ -1,9 +1,10 @@
-import { create } from 'zustand';
+import { create, StateCreator } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { subscribeWithSelector, devtools } from 'zustand/middleware';
-import type { Solution } from '../types';
+import type { Solution, SolutionCollaboration, SolutionDependency, SolutionIntegration, SolutionVersion } from '../types';
 import type { Node, Edge } from 'reactflow';
 import { solutions as seedSolutions } from '../data/seed';
+import { solutionsToJsonLd } from '../features/export';
 
 interface SolutionState {
   solutions: Solution[];
@@ -26,48 +27,58 @@ interface SolutionState {
   updateSolution: (id: string, updates: Partial<Solution>) => void;
   setActiveSolution: (id: string) => void;
   archiveSolution: (id: string) => void;
+  exportToJsonLd: () => string;
 }
+
+const initialState: Omit<SolutionState, 
+  'updateNodePosition' | 'updateEdges' | 'addSolution' | 'addCollaboration' | 
+  'addDependency' | 'addIntegration' | 'updateCollaboration' | 'updateDependency' | 
+  'updateIntegration' | 'removeCollaboration' | 'removeDependency' | 'removeIntegration' | 
+  'addVersion' | 'updateSolution' | 'setActiveSolution' | 'archiveSolution' | 'exportToJsonLd'
+> = {
+  solutions: seedSolutions,
+  activeSolutionId: null,
+  nodePositions: {},
+  edges: [],
+};
 
 export const useSolutionStore = create<SolutionState>()(
   devtools(subscribeWithSelector(persist(
-    (set) => ({
-      solutions: seedSolutions,
-      activeSolutionId: null,
-      nodePositions: {},
-      edges: [],
+    (set: any, get: any) => ({
+      ...initialState,
       
-      updateNodePosition: (nodeId, position) =>
-        set((state) => ({
+      updateNodePosition: (nodeId: string, position: { x: number; y: number }) =>
+        set((state: SolutionState) => ({
           nodePositions: {
             ...state.nodePositions,
             [nodeId]: position,
           },
         })),
         
-      updateEdges: (edges) =>
+      updateEdges: (edges: Edge[]) =>
         set({ edges }),
-      addSolution: (solution) =>
-        set((state) => ({
-          solutions: [
-            {
-              ...solution,
-              id: crypto.randomUUID(),
-              owner: {
-                id: 'current-user', // In real app, get from auth context
-                name: 'Current User',
-                role: 'owner'
-              },
-              team: [],
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
+      addSolution: (solution: Omit<Solution, 'id' | 'createdAt' | 'updatedAt'>) =>
+        set((state: SolutionState) => {
+          const newSolution: Solution = {
+            ...solution,
+            id: crypto.randomUUID(),
+            owner: {
+              id: 'current-user', // In real app, get from auth context
+              name: 'Current User',
+              role: 'owner'
             },
-            ...state.solutions,
-          ],
-          activeSolutionId: state.activeSolutionId || state.solutions.length === 0 ? solution.id : state.activeSolutionId,
-        })),
-      addCollaboration: (collaboration) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
+            team: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          return {
+            solutions: [newSolution, ...state.solutions],
+            activeSolutionId: state.activeSolutionId || state.solutions.length === 0 ? newSolution.id : state.activeSolutionId,
+          };
+        }),
+      addCollaboration: (collaboration: Partial<SolutionCollaboration>) =>
+        set((state: SolutionState) => ({
+          solutions: state.solutions.map((s: Solution) =>
             s.id === collaboration.sourceSolutionId 
               ? {
                   ...s,
@@ -85,10 +96,10 @@ export const useSolutionStore = create<SolutionState>()(
                 }
               : s
           ),
-        }), false, 'addCollaboration'),
-      addDependency: (dependency) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
+        })),
+      addDependency: (dependency: Partial<SolutionDependency>) =>
+        set((state: SolutionState) => ({
+          solutions: state.solutions.map((s: Solution) =>
             s.id === dependency.dependentSolutionId 
               ? {
                   ...s,
@@ -105,10 +116,10 @@ export const useSolutionStore = create<SolutionState>()(
                 }
               : s
           ),
-        }), false, 'addDependency'),
-      addIntegration: (integration) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
+        })),
+      addIntegration: (integration: Partial<SolutionIntegration>) =>
+        set((state: SolutionState) => ({
+          solutions: state.solutions.map((s: Solution) =>
             s.id === integration.sourceSolutionId 
               ? {
                   ...s,
@@ -126,82 +137,82 @@ export const useSolutionStore = create<SolutionState>()(
                 }
               : s
           ),
-        }), false, 'addIntegration'),
-      updateCollaboration: (id, updates) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
-            s.collaborations?.some((c) => c.id === id)
+        })),
+      updateCollaboration: (id: string, updates: Partial<SolutionCollaboration>) =>
+        set((state: SolutionState) => ({
+          solutions: state.solutions.map((s: Solution) =>
+            s.collaborations?.some((c: SolutionCollaboration) => c.id === id)
               ? {
                   ...s,
-                  collaborations: s.collaborations.map((c) =>
+                  collaborations: s.collaborations.map((c: SolutionCollaboration) =>
                     c.id === id ? { ...c, ...updates } : c
                   ),
                 }
               : s
           ),
         })),
-      updateDependency: (id, updates) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
-            s.dependencies?.some((d) => d.id === id)
+      updateDependency: (id: string, updates: Partial<SolutionDependency>) =>
+        set((state: SolutionState) => ({
+          solutions: state.solutions.map((s: Solution) =>
+            s.dependencies?.some((d: SolutionDependency) => d.id === id)
               ? {
                   ...s,
-                  dependencies: s.dependencies.map((d) =>
+                  dependencies: s.dependencies.map((d: SolutionDependency) =>
                     d.id === id ? { ...d, ...updates } : d
                   ),
                 }
               : s
           ),
         })),
-      updateIntegration: (id, updates) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
-            s.integrations?.some((i) => i.id === id)
+      updateIntegration: (id: string, updates: Partial<SolutionIntegration>) =>
+        set((state: SolutionState) => ({
+          solutions: state.solutions.map((s: Solution) =>
+            s.integrations?.some((i: SolutionIntegration) => i.id === id)
               ? {
                   ...s,
-                  integrations: s.integrations.map((i) =>
+                  integrations: s.integrations.map((i: SolutionIntegration) =>
                     i.id === id ? { ...i, ...updates } : i
                   ),
                 }
               : s
           ),
         })),
-      removeCollaboration: (id, solutionId) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
+      removeCollaboration: (id: string, solutionId: string) =>
+        set((state: SolutionState) => ({
+          solutions: state.solutions.map((s: Solution) =>
             s.id === solutionId
               ? {
                   ...s,
-                  collaborations: s.collaborations?.filter((c) => c.id !== id),
+                  collaborations: s.collaborations?.filter((c: SolutionCollaboration) => c.id !== id),
                 }
               : s
           ),
         })),
-      removeDependency: (id, solutionId) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
+      removeDependency: (id: string, solutionId: string) =>
+        set((state: SolutionState) => ({
+          solutions: state.solutions.map((s: Solution) =>
             s.id === solutionId
               ? {
                   ...s,
-                  dependencies: s.dependencies?.filter((d) => d.id !== id),
+                  dependencies: s.dependencies?.filter((d: SolutionDependency) => d.id !== id),
                 }
               : s
           ),
         })),
-      removeIntegration: (id, solutionId) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
+      removeIntegration: (id: string, solutionId: string) =>
+        set((state: SolutionState) => ({
+          solutions: state.solutions.map((s: Solution) =>
             s.id === solutionId
               ? {
                   ...s,
-                  integrations: s.integrations?.filter((i) => i.id !== id),
+                  integrations: s.integrations?.filter((i: SolutionIntegration) => i.id !== id),
                 }
               : s
           ),
         })),
-      addVersion: (version) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
+      addVersion: (version: Partial<SolutionVersion>) =>
+        set((state: SolutionState) => ({
+          solutions: state.solutions.map((s: Solution) =>
             s.id === version.solutionId
               ? {
                   ...s,
@@ -219,9 +230,9 @@ export const useSolutionStore = create<SolutionState>()(
               : s
           ),
         })),
-      updateSolution: (id, updates) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
+      updateSolution: (id: string, updates: Partial<Solution>) =>
+        set((state: SolutionState) => ({
+          solutions: state.solutions.map((s: Solution) =>
             s.id === id ? {
               ...s,
               ...updates,
@@ -233,20 +244,25 @@ export const useSolutionStore = create<SolutionState>()(
             } : s
           ),
         })),
-      setActiveSolution: (id) =>
+      setActiveSolution: (id: string) =>
         set({ activeSolutionId: id }),
-      archiveSolution: (id) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
+      archiveSolution: (id: string) =>
+        set((state: SolutionState) => ({
+          solutions: state.solutions.map((s: Solution) =>
             s.id === id
               ? { ...s, status: 'archived', updatedAt: new Date().toISOString() }
               : s
           ),
           activeSolutionId:
             state.activeSolutionId === id
-              ? state.solutions.find((s) => s.id !== id && s.status === 'active')?.id || null
+              ? state.solutions.find((s: Solution) => s.id !== id && s.status === 'active')?.id || null
               : state.activeSolutionId,
         })),
+      exportToJsonLd: () => {
+        const state = get();
+        const jsonLd = solutionsToJsonLd(state.solutions);
+        return JSON.stringify(jsonLd, null, 2);
+      },
     }),
     {
       name: 'solution-store',
