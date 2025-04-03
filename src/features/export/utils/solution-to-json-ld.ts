@@ -26,12 +26,21 @@ export function solutionToJsonLd(solution: Solution): JsonLdSolution {
       role: member.role
     })),
     metrics: Object.entries(solution.metrics).map(([key, value]) => ({
-      '@type': 'schema:QuantitativeValue',
+      '@type': 'sosa:Observation',
       name: key,
-      value: value.current,
-      targetValue: value.target,
-      unitText: value.unit,
-      dateModified: value.updatedAt
+      value: {
+        '@type': 'schema:QuantitativeValue',
+        value: value.current,
+        unitText: value.unit
+      },
+      targetValue: {
+        '@type': 'schema:QuantitativeValue',
+        value: value.target,
+        unitText: value.unit
+      },
+      dateModified: value.updatedAt,
+      madeBySensor: value.dataSource ? `${BASE_URL}/sensors/${value.dataSource}` : undefined,
+      observedProperty: `${BASE_URL}/properties/${key}`
     }))
   };
 

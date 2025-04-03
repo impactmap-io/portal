@@ -62,11 +62,25 @@ export const CUSTOM_CONTEXT: JsonLdContext = {
     '@id': 'imp:metrics',
     '@container': '@index',
     '@context': {
-      '@type': 'schema:QuantitativeValue',
-      'value': 'sosa:hasSimpleResult',
-      'targetValue': 'imp:targetValue',
+      '@type': 'sosa:Observation',
+      'value': {
+        '@id': 'sosa:hasResult',
+        '@type': 'schema:QuantitativeValue'
+      },
+      'targetValue': {
+        '@id': 'sosa:hasResult',
+        '@type': 'schema:QuantitativeValue'
+      },
       'unitText': 'sosa:hasUnit',
-      'dateModified': 'prov:generatedAtTime'
+      'dateModified': 'prov:generatedAtTime',
+      'madeBySensor': {
+        '@id': 'sosa:madeBySensor',
+        '@type': '@id'
+      },
+      'observedProperty': {
+        '@id': 'sosa:observedProperty',
+        '@type': '@id'
+      }
     }
   },
   'author': {

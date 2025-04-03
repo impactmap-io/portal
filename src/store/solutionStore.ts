@@ -5,6 +5,7 @@ import type { Solution, SolutionCollaboration, SolutionDependency, SolutionInteg
 import type { Node, Edge } from 'reactflow';
 import { solutions as seedSolutions } from '../data/seed';
 import { solutionsToJsonLd } from '../features/export';
+import { generateSolutionSpiffeId, generateWorkloadSpiffeId, generateServiceSpiffeId } from '../utils/spiffe';
 
 interface SolutionState {
   solutions: Solution[];
@@ -28,13 +29,15 @@ interface SolutionState {
   setActiveSolution: (id: string) => void;
   archiveSolution: (id: string) => void;
   exportToJsonLd: () => string;
+  addWorkload: (solutionId: string, workload: { name: string; environment: string }) => void;
+  addService: (solutionId: string, service: { name: string; type: string; endpoints?: string[] }) => void;
 }
 
 const initialState: Omit<SolutionState, 
   'updateNodePosition' | 'updateEdges' | 'addSolution' | 'addCollaboration' | 
   'addDependency' | 'addIntegration' | 'updateCollaboration' | 'updateDependency' | 
   'updateIntegration' | 'removeCollaboration' | 'removeDependency' | 'removeIntegration' | 
-  'addVersion' | 'updateSolution' | 'setActiveSolution' | 'archiveSolution' | 'exportToJsonLd'
+  'addVersion' | 'updateSolution' | 'setActiveSolution' | 'archiveSolution' | 'exportToJsonLd' | 'addWorkload' | 'addService'
 > = {
   solutions: seedSolutions,
   activeSolutionId: null,
@@ -70,6 +73,18 @@ export const useSolutionStore = create<SolutionState>()(
             team: [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            spiffeId: generateSolutionSpiffeId({
+              ...solution,
+              id: crypto.randomUUID(),
+              owner: {
+                id: 'current-user',
+                name: 'Current User',
+                role: 'owner'
+              },
+              team: [],
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            })
           };
           return {
             solutions: [newSolution, ...state.solutions],
@@ -263,6 +278,58 @@ export const useSolutionStore = create<SolutionState>()(
         const jsonLd = solutionsToJsonLd(state.solutions);
         return JSON.stringify(jsonLd, null, 2);
       },
+      addWorkload: (solutionId: string, workload: { name: string; environment: string }) =>
+        set((state: SolutionState) => {
+          const solution = state.solutions.find(s => s.id === solutionId);
+          if (!solution) return state;
+
+          const newWorkload = {
+            id: crypto.randomUUID(),
+            name: workload.name,
+            environment: workload.environment,
+            spiffeId: generateWorkloadSpiffeId(solution, workload.name, workload.environment),
+            status: 'active' as const,
+            lastSeen: new Date().toISOString()
+          };
+
+          const updatedSolution = {
+            ...solution,
+            workloads: [...(solution.workloads || []), newWorkload],
+            updatedAt: new Date().toISOString()
+          };
+
+          return {
+            solutions: state.solutions.map(s => 
+              s.id === solutionId ? updatedSolution : s
+            )
+          };
+        }),
+      addService: (solutionId: string, service: { name: string; type: string; endpoints?: string[] }) =>
+        set((state: SolutionState) => {
+          const solution = state.solutions.find(s => s.id === solutionId);
+          if (!solution) return state;
+
+          const newService = {
+            id: crypto.randomUUID(),
+            name: service.name,
+            type: service.type,
+            spiffeId: generateServiceSpiffeId(solution, service.name),
+            endpoints: service.endpoints || [],
+            status: 'active' as const
+          };
+
+          const updatedSolution = {
+            ...solution,
+            services: [...(solution.services || []), newService],
+            updatedAt: new Date().toISOString()
+          };
+
+          return {
+            solutions: state.solutions.map(s => 
+              s.id === solutionId ? updatedSolution : s
+            )
+          };
+        }),
     }),
     {
       name: 'solution-store',
