@@ -52,12 +52,21 @@ export interface JsonLdPerson {
 }
 
 export interface JsonLdMetric {
-  '@type': string;
+  '@type': 'sosa:Observation';
   name: string;
-  value: number;
-  targetValue: number;
-  unitText: string;
+  value: {
+    '@type': 'schema:QuantitativeValue';
+    value: number;
+    unitText: string;
+  };
+  targetValue: {
+    '@type': 'schema:QuantitativeValue';
+    value: number;
+    unitText: string;
+  };
   dateModified: string;
+  madeBySensor?: string;
+  observedProperty?: string;
 }
 
 export interface JsonLdRepository {

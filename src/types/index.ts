@@ -4,6 +4,35 @@ export interface Solution {
   description: string;
   status: 'active' | 'archived' | 'draft';
   category: 'product' | 'service' | 'platform' | 'integration';
+  spiffeId?: {
+    trustDomain: string;
+    path: string;
+    fullId: string;
+  };
+  workloads?: {
+    id: string;
+    name: string;
+    environment: string;
+    spiffeId: {
+      trustDomain: string;
+      path: string;
+      fullId: string;
+    };
+    status: 'active' | 'inactive';
+    lastSeen?: string;
+  }[];
+  services?: {
+    id: string;
+    name: string;
+    type: string;
+    spiffeId: {
+      trustDomain: string;
+      path: string;
+      fullId: string;
+    };
+    endpoints?: string[];
+    status: 'active' | 'inactive';
+  }[];
   repository?: {
     type: 'github' | 'gitlab' | 'bitbucket';
     url: string;
@@ -32,6 +61,7 @@ export interface Solution {
       target: number;
       unit: string;
       updatedAt: string;
+      dataSource?: string;
     }
   };
   collaborations?: SolutionCollaboration[];
