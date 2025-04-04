@@ -15,7 +15,8 @@ import {
   Users,
   LifeBuoy,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  AlertTriangle
 } from 'lucide-react';
 import { useHubStore } from '../store/hubStore';
 import { cn } from '../utils/cn';
@@ -87,11 +88,6 @@ const FORM_STEPS: HubFormStep[] = [
     id: 'basics',
     title: 'Basic Information',
     description: 'Let\'s start with the essential details of your hub.'
-  },
-  {
-    id: 'organization',
-    title: 'Organization Details',
-    description: 'Tell us about your organization.'
   },
   {
     id: 'deployment',
@@ -178,9 +174,11 @@ interface HubSettingsProps {
 const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
   const [activeTab, setActiveTab] = useState('configure');
   const [formChanged, setFormChanged] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Get update method from hub store and use it directly
-  const { updateHub } = useHubStore();
+  const { updateHub, deleteHub } = useHubStore();
   
   // Create a save handler that uses updateHub
   const handleSaveChanges = () => {
@@ -197,6 +195,22 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
     onClose();
   };
 
+  const handleDeleteHub = async () => {
+    if (deleteConfirmation !== hub.name) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteHub(hub.id);
+      onClose();
+    } catch (error) {
+      console.error('Failed to delete hub:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Track form changes to enable/disable save button
   const handleFormChange = () => {
     setFormChanged(true);
@@ -209,6 +223,7 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
     { id: 'subscription', label: 'Subscription', icon: CreditCard },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'support', label: 'Support', icon: LifeBuoy },
+    { id: 'danger', label: 'Danger Zone', icon: AlertTriangle },
   ];
 
   const renderTabContent = () => {
@@ -225,7 +240,7 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
                     type="text"
                     defaultValue={hub.name}
                     onChange={handleFormChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
+                    className="mt-1 block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     Lowercase letters, numbers, and hyphens only. This will be used in URLs and API endpoints.
@@ -236,18 +251,18 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
                   <input
                     type="text"
                     defaultValue={hub.displayName}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
+                    className="mt-1 block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Domain</label>
-                  <div className="mt-1 flex rounded-md shadow-sm">
+                  <div className="mt-1 flex rounded-lg shadow-sm">
                     <input
                       type="text"
                       defaultValue={hub.domain?.replace('.impactmap.com', '')}
-                      className="flex-1 rounded-none rounded-l-md border-gray-300 focus:border-indigo-500 focus:ring-gray-500"
+                      className="flex-1 px-4 py-3 rounded-l-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                     />
-                    <span className="inline-flex items-center rounded-r-md border border-l-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
+                    <span className="inline-flex items-center px-4 py-3 rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
                       .impactmap.com
                     </span>
                   </div>
@@ -266,12 +281,12 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
                   <label className="block text-sm font-medium text-gray-700">Organization Name</label>
                   <input
                     type="text"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
+                    className="mt-1 block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Industry</label>
-                  <select className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500">
+                  <select className="mt-1 block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200">
                     <option>Technology</option>
                     <option>Healthcare</option>
                     <option>Finance</option>
@@ -417,6 +432,49 @@ const HubSettings = ({ hub, onClose }: HubSettingsProps) => {
                     </a>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'danger':
+        return (
+          <div className="space-y-6">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+              <h3 className="text-lg font-medium text-red-900">Delete Hub</h3>
+              <p className="mt-2 text-sm text-red-700">
+                Once you delete a hub, there is no going back. Please be certain.
+              </p>
+              <div className="mt-4">
+                <label htmlFor="delete-confirmation" className="block text-sm font-medium text-red-700">
+                  Type the hub name to confirm deletion
+                </label>
+                <input
+                  id="delete-confirmation"
+                  type="text"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  className="mt-1 block w-full px-4 py-3 rounded-lg border border-red-300 bg-white shadow-sm hover:border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 focus:ring-opacity-50 transition-colors duration-200"
+                  placeholder={hub.name}
+                />
+                <button
+                  onClick={handleDeleteHub}
+                  disabled={deleteConfirmation !== hub.name || isDeleting}
+                  className={cn(
+                    "mt-4 px-4 py-2 text-sm font-medium rounded-md text-white transition-colors duration-150",
+                    deleteConfirmation === hub.name && !isDeleting
+                      ? "bg-red-600 hover:bg-red-700"
+                      : "bg-red-400 cursor-not-allowed"
+                  )}
+                >
+                  {isDeleting ? (
+                    <div className="flex items-center">
+                      <Loader className="w-4 h-4 mr-2 animate-spin" />
+                      Deleting...
+                    </div>
+                  ) : (
+                    "Delete Hub"
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -722,10 +780,11 @@ const Hubs = () => {
 
         {/* Hub Form Modal */}
         {(isCreating || editingHubId) && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50" onClick={(e) => e.stopPropagation()}>
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="py-4 px-6 flex flex-col">
-                <div className="flex justify-between items-center mb-6">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white w-full h-full flex flex-col">
+              {/* Fixed header section */}
+              <div className="flex-none border-b border-gray-200 bg-white">
+                <div className="py-4 px-6 flex justify-between items-center">
                   <h3 className="text-lg font-medium text-gray-900">
                     {editingHubId ? 'Edit Hub' : 'Create New Hub'}
                   </h3>
@@ -736,278 +795,233 @@ const Hubs = () => {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
+              </div>
 
-                {isSubmitting ? (
-                  <div className="p-8 flex flex-col items-center justify-center">
-                    <div className="animate-spin mb-4">
-                      <Loader className="h-10 w-10 text-black" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Creating Your Hub</h3>
-                    <p className="text-gray-500">{progressMessage}</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="mb-8">
-                      <div className="relative">
-                        <div className="flex items-center justify-between">
-                          {FORM_STEPS.map((step, index) => (
-                            <React.Fragment key={step.id}>
-                              {index > 0 && (
-                                <div className={cn(
-                                  "flex-1 h-0.5",
-                                  index <= currentStep ? "bg-black" : "bg-gray-200"
-                                )}></div>
+              {/* Main content area with flex layout */}
+              <div className="flex-1 flex overflow-hidden">
+                {/* Left sidebar with progress steps */}
+                <div className="w-64 border-r border-gray-200 bg-gray-50 flex flex-col">
+                  <div className="p-6 flex-1 overflow-y-auto">
+                    <div className="space-y-8">
+                      {FORM_STEPS.map((step, index) => (
+                        <div key={step.id} className="flex items-start">
+                          <div className="flex items-center">
+                            <div
+                              className={cn(
+                                "h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium",
+                                index < currentStep
+                                  ? "bg-black text-white"
+                                  : index === currentStep
+                                  ? "bg-black text-white"
+                                  : "bg-gray-200 text-gray-500"
                               )}
-                              <div className="relative flex items-center justify-center">
-                                <div
-                                  className={cn(
-                                    "h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium",
-                                    index < currentStep
-                                      ? "bg-black text-white"
-                                      : index === currentStep
-                                      ? "bg-black text-white"
-                                      : "bg-gray-200 text-gray-500"
-                                  )}
-                                >
-                                  {index + 1}
-                                </div>
-                              </div>
-                            </React.Fragment>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="mt-6">
-                        <h4 className="text-base font-medium text-gray-900">
-                          {FORM_STEPS[currentStep].title}
-                        </h4>
-                        <p className="mt-1 text-sm text-gray-500">
-                          {FORM_STEPS[currentStep].description}
-                        </p>
-                      </div>
-                    </div>
-
-                    <form onSubmit={handleSubmit}>
-                      {/* Step 1: Basic Information */}
-                      {currentStep === 0 && (
-                        <div className="space-y-6">
-                          <div>
-                            <label htmlFor="hub-name" className="block text-sm font-medium text-gray-700">
-                              Hub Name (Unique Identifier)
-                            </label>
-                            <input
-                              id="hub-name"
-                              name="name"
-                              type="text"
-                              value={formData.name}
-                              onChange={(e) => updateFormData({ name: e.target.value })}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
-                              placeholder="my-hub-name"
-                              required
-                            />
-                            <p className="mt-1 text-xs text-gray-500">
-                              Lowercase letters, numbers, and hyphens only. This will be used in URLs and API endpoints.
-                            </p>
-                          </div>
-                          
-                          <div>
-                            <label htmlFor="display-name" className="block text-sm font-medium text-gray-700">
-                              Display Name
-                            </label>
-                            <input
-                              id="display-name"
-                              name="displayName"
-                              type="text"
-                              value={formData.displayName}
-                              onChange={(e) => updateFormData({ displayName: e.target.value })}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
-                              placeholder="My Hub Name"
-                              required
-                            />
-                          </div>
-                          
-                          <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                              Description
-                            </label>
-                            <textarea
-                              id="description"
-                              name="description"
-                              value={formData.description}
-                              onChange={(e) => updateFormData({ description: e.target.value })}
-                              rows={3}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
-                              placeholder="A brief description of this hub"
-                            ></textarea>
-                          </div>
-                          
-                          <div>
-                            <label htmlFor="domain" className="block text-sm font-medium text-gray-700">
-                              Domain
-                            </label>
-                            <div className="mt-1 flex rounded-md shadow-sm">
-                              <input
-                                id="domain"
-                                name="domain"
-                                type="text"
-                                value={formData.domain}
-                                onChange={(e) => updateFormData({ domain: e.target.value })}
-                                className="flex-1 rounded-none rounded-l-md border-gray-300 focus:border-indigo-500 focus:ring-gray-500"
-                                placeholder="your-hub-name"
-                              />
-                              <span className="inline-flex items-center rounded-r-md border border-l-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
-                                .impactmap.com
-                              </span>
+                            >
+                              {index + 1}
                             </div>
-                            {domainError && (
-                              <p className="mt-1 text-sm text-red-600">{domainError}</p>
+                            {index < FORM_STEPS.length - 1 && (
+                              <div className={cn(
+                                "h-16 w-0.5 ml-4",
+                                index < currentStep ? "bg-black" : "bg-gray-200"
+                              )}></div>
                             )}
                           </div>
-                        </div>
-                      )}
-
-                      {/* Step 2: Organization Details */}
-                      {currentStep === 1 && (
-                        <div className="space-y-6">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Organization Name</label>
-                            <input
-                              type="text"
-                              value={formData.organization.name}
-                              onChange={(e) => updateFormData({
-                                organization: { ...formData.organization, name: e.target.value }
-                              })}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Industry</label>
-                            <select
-                              value={formData.organization.industry}
-                              onChange={(e) => updateFormData({
-                                organization: { ...formData.organization, industry: e.target.value }
-                              })}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
-                              required
-                            >
-                              <option value="">Select Industry</option>
-                              <option value="technology">Technology</option>
-                              <option value="healthcare">Healthcare</option>
-                              <option value="finance">Finance</option>
-                              <option value="education">Education</option>
-                              <option value="retail">Retail</option>
-                              <option value="manufacturing">Manufacturing</option>
-                              <option value="other">Other</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Organization Size</label>
-                            <select
-                              value={formData.organization.size}
-                              onChange={(e) => updateFormData({
-                                organization: { ...formData.organization, size: e.target.value }
-                              })}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-gray-500"
-                              required
-                            >
-                              <option value="">Select Size</option>
-                              <option value="1-10">1-10 employees</option>
-                              <option value="11-50">11-50 employees</option>
-                              <option value="51-200">51-200 employees</option>
-                              <option value="201-500">201-500 employees</option>
-                              <option value="501-1000">501-1000 employees</option>
-                              <option value="1000+">1000+ employees</option>
-                            </select>
+                          <div className="ml-4">
+                            <h4 className="text-sm font-medium text-gray-900">
+                              {step.title}
+                            </h4>
+                            <p className="mt-1 text-xs text-gray-500">
+                              {step.description}
+                            </p>
                           </div>
                         </div>
-                      )}
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-                      {/* Step 3: Deployment Model */}
-                      {currentStep === 2 && (
-                        <div className="space-y-6">
-                          <h3 className="text-lg font-medium text-gray-900">Select Deployment Provider</h3>
-                          <div className="grid grid-cols-2 gap-4">
-                            {DEPLOYMENT_PROVIDERS.map((provider) => {
-                              const Icon = provider.icon;
-                              return (
-                                <button
-                                  key={provider.id}
-                                  type="button"
-                                  onClick={() => updateFormData({
-                                    deployment: {
-                                      ...formData.deployment,
-                                      provider: provider.id as any
-                                    }
-                                  })}
-                                  className={cn(
-                                    "flex items-center p-4 border rounded-lg transition-colors",
-                                    formData.deployment.provider === provider.id
-                                      ? "border-indigo-500 bg-indigo-50"
-                                      : "border-gray-200 hover:border-indigo-300"
-                                  )}
-                                >
-                                  <Icon className="w-5 h-5 mr-2" />
-                                  {provider.name}
-                                </button>
-                              );
-                            })}
-                          </div>
+                {/* Right content area with form */}
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  {/* Scrollable content area with bottom padding for button bar */}
+                  <div className="flex-1 overflow-y-auto relative">
+                    {/* Add scroll indicator at the bottom of the scrollable area */}
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                    
+                    {isSubmitting ? (
+                      <div className="p-8 flex flex-col items-center justify-center">
+                        <div className="animate-spin mb-4">
+                          <Loader className="h-10 w-10 text-black" />
                         </div>
-                      )}
-
-                      {/* Step 5: Billing Plan */}
-                      {currentStep === 4 && (
-                        <div className="space-y-6">
-                          <div>
-                            <h4 className="text-base font-medium text-gray-900 mb-4">Choose a plan that fits your needs</h4>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                              {BILLING_PLANS.map((plan) => (
-                                <div 
-                                  key={plan.id}
-                                  className={cn(
-                                    "relative rounded-lg border p-4 shadow-sm cursor-pointer",
-                                    formData.plan === plan.id 
-                                      ? "border-indigo-500 ring-2 ring-indigo-500" 
-                                      : "border-gray-300 hover:border-gray-400"
-                                  )}
-                                  onClick={() => updateFormData({ plan: plan.id as 'free' | 'pro' | 'enterprise' })}
-                                >
-                                  <div className="flex flex-col h-full">
-                                    <div className="flex justify-between">
-                                      <h3 className="text-sm font-medium text-gray-900">{plan.name}</h3>
-                                      {formData.plan === plan.id && (
-                                        <div className="h-5 w-5 rounded-full bg-black flex items-center justify-center">
-                                          <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M3.5 6L5.5 8L8.5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                          </svg>
-                                        </div>
-                                      )}
-                                    </div>
-                                    <p className="text-gray-500 text-sm mt-1">{plan.description}</p>
-                                    <p className="text-lg font-medium text-gray-900 mt-4">{plan.price}</p>
-                                    <ul className="mt-4 space-y-2 flex-grow">
-                                      {plan.features.map((feature, index) => (
-                                        <li key={index} className="flex text-sm">
-                                          <svg className="h-5 w-5 text-indigo-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                          </svg>
-                                          <span className="text-gray-700">{feature}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Creating Your Hub</h3>
+                        <p className="text-gray-500">{progressMessage}</p>
+                      </div>
+                    ) : (
+                      <div className="p-6">
+                        <form onSubmit={handleSubmit} className="pb-16">
+                          {/* Step 1: Basic Information */}
+                          {currentStep === 0 && (
+                            <div className="space-y-6">
+                              <div>
+                                <label htmlFor="hub-name" className="block text-sm font-medium text-gray-700">
+                                  Hub Name (Unique Identifier)
+                                </label>
+                                <input
+                                  id="hub-name"
+                                  name="name"
+                                  type="text"
+                                  value={formData.name}
+                                  onChange={(e) => updateFormData({ name: e.target.value })}
+                                  className="mt-1 block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
+                                  placeholder="my-hub-name"
+                                  required
+                                />
+                                <p className="mt-1 text-xs text-gray-500">
+                                  Lowercase letters, numbers, and hyphens only. This will be used in URLs and API endpoints.
+                                </p>
+                              </div>
+                              
+                              <div>
+                                <label htmlFor="display-name" className="block text-sm font-medium text-gray-700">
+                                  Display Name
+                                </label>
+                                <input
+                                  id="display-name"
+                                  name="displayName"
+                                  type="text"
+                                  value={formData.displayName}
+                                  onChange={(e) => updateFormData({ displayName: e.target.value })}
+                                  className="mt-1 block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
+                                  placeholder="My Hub Name"
+                                  required
+                                />
+                              </div>
+                              
+                              <div>
+                                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                                  Description
+                                </label>
+                                <textarea
+                                  id="description"
+                                  name="description"
+                                  value={formData.description}
+                                  onChange={(e) => updateFormData({ description: e.target.value })}
+                                  rows={3}
+                                  className="mt-1 block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
+                                  placeholder="A brief description of this hub"
+                                ></textarea>
+                              </div>
+                              
+                              <div>
+                                <label htmlFor="domain" className="block text-sm font-medium text-gray-700">
+                                  Domain
+                                </label>
+                                <div className="mt-1 flex rounded-lg shadow-sm">
+                                  <input
+                                    id="domain"
+                                    name="domain"
+                                    type="text"
+                                    value={formData.domain}
+                                    onChange={(e) => updateFormData({ domain: e.target.value })}
+                                    className="flex-1 px-4 py-3 rounded-l-lg border border-gray-300 bg-white shadow-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50 transition-colors duration-200"
+                                    placeholder="your-hub-name"
+                                  />
+                                  <span className="inline-flex items-center px-4 py-3 rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                                    .impactmap.com
+                                  </span>
                                 </div>
-                              ))}
+                                {domainError && (
+                                  <p className="mt-1 text-sm text-red-600">{domainError}</p>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      )}
-                    </form>
-                  </>
-                )}
-                
-                {!editingHubId && currentStep < FORM_STEPS.length && (
-                  <div className="flex justify-between pt-6 border-t mt-8">
+                          )}
+
+                          {/* Step 2: Deployment Model */}
+                          {currentStep === 1 && (
+                            <div className="space-y-6">
+                              <h3 className="text-lg font-medium text-gray-900">Select Deployment Provider</h3>
+                              <div className="grid grid-cols-2 gap-4">
+                                {DEPLOYMENT_PROVIDERS.map((provider) => {
+                                  const Icon = provider.icon;
+                                  return (
+                                    <button
+                                      key={provider.id}
+                                      type="button"
+                                      onClick={() => updateFormData({
+                                        deployment: {
+                                          ...formData.deployment,
+                                          provider: provider.id as any
+                                        }
+                                      })}
+                                      className={cn(
+                                        "flex items-center p-4 border rounded-lg transition-colors",
+                                        formData.deployment.provider === provider.id
+                                          ? "border-indigo-500 bg-indigo-50"
+                                          : "border-gray-200 hover:border-indigo-300"
+                                      )}
+                                    >
+                                      <Icon className="w-5 h-5 mr-2" />
+                                      {provider.name}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Step 3: Billing Plan */}
+                          {currentStep === 2 && (
+                            <div className="space-y-6">
+                              <div>
+                                <h4 className="text-base font-medium text-gray-900 mb-4">Choose a plan that fits your needs</h4>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                  {BILLING_PLANS.map((plan) => (
+                                    <div 
+                                      key={plan.id}
+                                      className={cn(
+                                        "relative rounded-lg border p-4 shadow-sm cursor-pointer",
+                                        formData.plan === plan.id 
+                                          ? "border-indigo-500 ring-2 ring-indigo-500" 
+                                          : "border-gray-300 hover:border-gray-400"
+                                      )}
+                                      onClick={() => updateFormData({ plan: plan.id as 'free' | 'pro' | 'enterprise' })}
+                                    >
+                                      <div className="flex flex-col h-full">
+                                        <div className="flex justify-between">
+                                          <h3 className="text-sm font-medium text-gray-900">{plan.name}</h3>
+                                          {formData.plan === plan.id && (
+                                            <div className="h-5 w-5 rounded-full bg-black flex items-center justify-center">
+                                              <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M3.5 6L5.5 8L8.5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                              </svg>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <p className="text-gray-500 text-sm mt-1">{plan.description}</p>
+                                        <p className="text-lg font-medium text-gray-900 mt-4">{plan.price}</p>
+                                        <ul className="mt-4 space-y-2 flex-grow">
+                                          {plan.features.map((feature, index) => (
+                                            <li key={index} className="flex text-sm">
+                                              <svg className="h-5 w-5 text-indigo-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                              </svg>
+                                              <span className="text-gray-700">{feature}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </form>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Button bar contained within the right column */}
+                  <div className="flex-none border-t border-gray-200 bg-white p-4 flex justify-end space-x-3">
                     <button
                       type="button"
                       onClick={handleBack}
@@ -1026,7 +1040,7 @@ const Hubs = () => {
                       {currentStep === FORM_STEPS.length - 1 ? 'Create Hub' : 'Next'}
                     </button>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>

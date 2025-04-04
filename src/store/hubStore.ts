@@ -11,6 +11,7 @@ interface HubState {
   setActiveHub: (id: string) => void;
   archiveHub: (id: string) => void;
   isDomainAvailable: (domain: string) => Promise<boolean>;
+  deleteHub: (hubId: string) => void;
 }
 
 // Mock data for development
@@ -111,6 +112,12 @@ export const useHubStore = create<HubState>()(
         // Simulate API call to check domain availability
         await new Promise((resolve) => setTimeout(resolve, 500));
         return !get().hubs.some((h) => h.domain === domain);
+      },
+
+      deleteHub: (hubId: string) => {
+        set((state) => ({
+          hubs: state.hubs.filter((hub) => hub.id !== hubId)
+        }));
       },
     }),
     {
